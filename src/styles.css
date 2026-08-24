@@ -1,0 +1,114 @@
+/* 봄버맨풍 픽셀 UI (v3) — 픽셀 폰트(Neo둥근모, @kfonts/neodgm 로컬 번들) + 각진 패널 + 하드 섀도 */
+:root {
+  --bg: #141a33;
+  --bg-deep: #0e1226;
+  --panel: rgba(255, 255, 255, 0.07);
+  --panel-line: rgba(255, 255, 255, 0.14);
+  --outline: #1d2338;
+  --ink: #ffffff;
+  --ink-dim: #cdd6f7;
+  --ink-faint: #8e9bd0;
+  --accent: #ffd23f;
+  --accent-deep: #c47c00;
+  --pink: #ff6f91;
+  --cyan: #7fd8ff;
+  --mint: #9ff0b4;
+  --frame-1: #4a5aa0;
+  --frame-2: #333f78;
+  --font-display: 'Neo둥근모', 'DungGeunMo', 'Jua', sans-serif;
+  --font-ui: 'Neo둥근모', 'DungGeunMo', 'Gothic A1', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: var(--bg-deep);
+  /* 픽셀 체커 + 스캔라인 + 딥블루 그라데이션 */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 24px, transparent 24px 48px),
+    radial-gradient(120% 90% at 50% 0%, #2b3566 0%, var(--bg) 60%, var(--bg-deep) 100%);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+
+canvas { image-rendering: pixelated; }
+
+.screen-center {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+/* 메인 CTA — 픽셀 버튼: 각진 모서리 + 3px 아웃라인 + 단색 + 하드 드롭 */
+.btn-cta {
+  cursor: pointer;
+  font-family: var(--font-display);
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #4a2f00;
+  user-select: none;
+  box-shadow: 0 5px 0 var(--accent-deep), 0 5px 0 3px var(--outline);
+  transition: transform 0.08s steps(2, end);
+}
+.btn-cta:hover { transform: translateY(-2px); }
+.btn-cta:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-deep), 0 2px 0 3px var(--outline); }
+
+/* 보조 버튼 */
+.btn-ghost {
+  cursor: pointer;
+  font-family: var(--font-display);
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  background: #29335c;
+  color: var(--ink-dim);
+  box-shadow: 0 4px 0 #1a2141, 0 4px 0 3px var(--outline);
+  transition: transform 0.08s steps(2, end);
+}
+.btn-ghost:hover { background: #34406e; transform: translateY(-1px); }
+.btn-ghost:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a2141, 0 1px 0 3px var(--outline); }
+
+/* 캐릭터/맵 선택 카드 — 픽셀 카드 */
+.pick-card {
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #222b52;
+  border: 3px solid var(--panel-line);
+  transition: background 0.08s steps(2, end);
+  image-rendering: pixelated;
+}
+.pick-card:hover { background: #2b3564; }
+
+/* 타이틀 안내 카드 */
+.info-card {
+  background: #1b2347;
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.07);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+.info-line { font-size: 13px; color: var(--ink-dim); }
+
+/* 픽셀 패널 (HUD·프레임 공용) */
+.pixel-panel {
+  background: #1b2347;
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.07);
+}
+
+@keyframes bnbFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes bnbPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
