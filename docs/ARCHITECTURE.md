@@ -129,9 +129,23 @@ engine.stop();
 
 HUD 칩(풍/줄/속/침)은 변경 없음 — 색 언어(핑크/시안/노랑/흰)가 패널과 일치.
 
+## 사운드 (v6)
+
+`src/audio/audio.js` — Web Audio API 신디사이즈, 외부 에셋 0.
+
+- **SFX 13종**: ui/place/pin/burst(노이즈+저역 스윕)/crate/itemGood(상승 아르페지오)/
+  itemBad(하강)/trapped(버블)/die/win(팡파레)/lose/draw. 연쇄폭발 다발음은 이름별 스로틀(40~120ms).
+- **BGM 2트랙**: 32스텝 시퀀서 칩튠 루프 — 타이틀 96bpm / 인게임 138bpm. square 리드 +
+  triangle 베이스 + 노이즈 햇, 0.25s 룩어헤드 스케줄러. App이 화면 전환 시 `startBgm` 스위칭.
+- **설정**: 타이틀에 켬/끔 + 볼륨 3단, localStorage `wba-audio` 저장.
+- **autoplay 정책**: `installUnlock()` — 첫 pointerdown/keydown에서 AudioContext 생성/resume,
+  그 전 BGM 요청은 pending 지연.
+- **엔진 순수성 유지**: 엔진은 `opts.onSound(name)` 콜백으로 이름만 방출하고 오디오를
+  import하지 않는다. 봇의 아이템 획득은 무음. `useGame`이 `playSfx`를 연결.
+
 ## 테스트 (Vitest)
 
-`npm test` = `vitest run`. `tests/` 6개 파일 + `helpers.js`, 46 테스트.
+`npm test` = `vitest run`. `tests/` 파일 + `helpers.js`, 50 테스트.
 (v4에서 +5: 레인 정렬 2, AI 회귀 3 — "물 경유 탈출로면 미설치", "탈출 경로 전 칸 안전",
 "스테일 경로 폐기". maps.test는 8종 기준. v5에서 +3: items.test.js.)
 
@@ -154,4 +168,5 @@ engine만 renderer를 mock한다 — 엔진/React 경계 원칙이 테스트에�
 ## 빌드
 
 Vite 5 + `@vitejs/plugin-react`. 런타임 의존성은 react/react-dom + `@kfonts/neodgm`(픽셀 폰트,
-로컬 번들 — CDN 미사용). 개발 의존성에 Vitest. 현재 빌드 크기 약 186KB (gzip 61.4KB).
+로컬 번들 — CDN 미사용). 개발 의존성에 Vitest. 현재 빌드 크기 약 192KB (gzip 63.4KB).
+git 저장소 초기화됨 (2026-08-24, `6a1f4ba` 베이스라인).

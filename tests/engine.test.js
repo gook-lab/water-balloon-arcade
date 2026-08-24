@@ -149,6 +149,39 @@ describe('승패 판정 (step)', () => {
   });
 });
 
+describe('갇힌 상대 터치 팝 (클래식 규칙)', () => {
+  it('살아있는 엔티티가 갇힌 상대에 닿으면 즉시 터진다', () => {
+    const { engine } = makeEngine();
+    const g = engine.g;
+    const me = makeEnt(g, 3, 3);
+    const bot = makeEnt(g, 3, 3, { id: 1, isBot: true, state: 'trapped', trappedAt: performance.now(), nextThink: Infinity });
+    g.ents.push(me, bot, makeEnt(g, 14, 0, { id: 2, isBot: true, nextThink: Infinity }));
+    engine.step(g);
+    expect(bot.state).toBe('dying');
+  });
+
+  it('멀리 있으면 터지지 않는다 (TRAP_MS 대기 유지)', () => {
+    const { engine } = makeEngine();
+    const g = engine.g;
+    const me = makeEnt(g, 0, 0);
+    const bot = makeEnt(g, 5, 5, { id: 1, isBot: true, state: 'trapped', trappedAt: performance.now(), nextThink: Infinity });
+    g.ents.push(me, bot);
+    engine.step(g);
+    expect(bot.state).toBe('trapped');
+  });
+
+  it('갇힌 상대가 물을 다시 맞으면 즉시 터진다 (기존 규칙 유지)', () => {
+    const { engine } = makeEngine();
+    const g = engine.g;
+    const me = makeEnt(g, 0, 0);
+    const bot = makeEnt(g, 5, 5, { id: 1, isBot: true, state: 'trapped', trappedAt: performance.now() - 1000, nextThink: Infinity });
+    g.ents.push(me, bot);
+    g.water.set(key(5, 5), performance.now()); // trappedAt + 150 이후의 새 물
+    engine.step(g);
+    expect(bot.state).toBe('dying');
+  });
+});
+
 describe('사운드 배선 (onSound 콜백 — 엔진은 이름만 방출)', () => {
   it('폭발·상자 파괴가 burst/crate 를 방출한다', () => {
     const { engine, onSound } = makeEngine();

@@ -49,6 +49,16 @@ describe('think', () => {
     expect(d.has(key(last[0], last[1]))).toBe(false);
   });
 
+  it('갇힌 상대가 있으면 그쪽으로 사냥 경로를 잡는다', () => {
+    const g = makeGame({});
+    const player = makeEnt(g, 3, 0, { state: 'trapped', trappedAt: performance.now() });
+    const bot = makeEnt(g, 0, 0, { id: 1, isBot: true });
+    g.ents.push(player, bot);
+    think(g, bot, '보통');
+    expect(bot.path.length).toBeGreaterThan(0);
+    expect(bot.path[bot.path.length - 1]).toEqual([3, 0]);
+  });
+
   it('상자 인접 + 탈출 경로 확보 시에만 풍선을 설치한다 (자살 방지)', () => {
     const g = makeGame({ rows: ['.S.............'] });
     const player = makeEnt(g, 14, 12);

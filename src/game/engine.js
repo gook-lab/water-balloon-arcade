@@ -62,8 +62,15 @@ export class GameEngine {
     };
     if (this.canvas) { this.canvas.width = NX * T; this.canvas.height = NY * T; }
 
+    // 물리 키 기준 정규화 — 한글 IME 모드에서 e.key 가 'ㅌ'/'Process' 로 들어와도
+    // WASD·X 가 동작하도록 e.code(KeyW 등)를 우선한다.
+    const keyName = (e) => {
+      if (/^Key[A-Z]$/.test(e.code)) return e.code.slice(3).toLowerCase();
+      if (e.code === 'Space') return ' ';
+      return e.key.toLowerCase();
+    };
     this.onKeyDown = (e) => {
-      const k = e.key.toLowerCase();
+      const k = keyName(e);
       if (k.startsWith('arrow') || k === ' ') e.preventDefault();
       if (this.keys[k]) return;
       this.keys[k] = true;
@@ -76,7 +83,7 @@ export class GameEngine {
         if (k === 'x') this.usePin(this.me());
       }
     };
-    this.onKeyUp = (e) => { this.keys[e.key.toLowerCase()] = false; };
+    this.onKeyUp = (e) => { this.keys[keyName(e)] = false; };
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
 
@@ -154,6 +161,14 @@ export class GameEngine {
           if (wa !== undefined && wa > e.trappedAt + 150) this.kill(e);
           else if (now - e.trappedAt > TRAP_MS) this.kill(e);
         }
+      });
+      // 갇힌 상대 터치 → 즉시 터뜨리기 (클래식 규칙)
+      g.ents.forEach((a) => {
+        if (a.state !== 'alive') return;
+        g.ents.forEach((t2) => {
+          if (t2 === a || t2.state !== 'trapped') return;
+          if (Math.abs(a.x - t2.x) < g.T * 0.6 && Math.abs(a.y - t2.y) < g.T * 0.6) this.kill(t2);
+        });
       });
       const botsLeft = g.ents.filter((e) => e.isBot && e.state !== 'dead').length;
       const left = Math.max(0, this.matchSeconds - Math.floor((now - g.start) / 1000));

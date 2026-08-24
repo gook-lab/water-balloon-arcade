@@ -13,7 +13,7 @@ npm install
 npm run dev      # Vite 개발 서버
 npm run build    # 프로덕션 빌드 (dist/)
 npm run preview  # 빌드 결과 미리보기
-npm test         # Vitest — tests/ 6개 파일, 46 테스트
+npm test         # Vitest — 50 테스트
 ```
 
 ## 조작

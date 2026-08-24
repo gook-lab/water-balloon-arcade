@@ -45,6 +45,13 @@ export function think(game, e, skill) {
       || [];
     return;
   }
+  // 갇힌 상대 사냥 — 접촉하면 터뜨릴 수 있으므로 마무리 최우선
+  const prey = game.ents.find((o) => o.id !== e.id && o.state === 'trapped');
+  if (prey) {
+    const [gx, gy] = tileOf(game, prey);
+    const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, danger);
+    if (hunt && hunt.length) { e.path = hunt; return; }
+  }
   if (game.items.size) {
     const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, danger);
     if (p && p.length) { e.path = p; return; }
