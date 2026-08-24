@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { installUnlock, startBgm, playSfx } from './audio/audio.js';
 import TitleScreen from './screens/TitleScreen.jsx';
 import CharacterSelect from './screens/CharacterSelect.jsx';
 import MapSelect from './screens/MapSelect.jsx';
@@ -20,6 +21,16 @@ export default function App() {
   const [charIdx, setCharIdx] = useState(0);
   const [mapIdx, setMapIdx] = useState(0);
   const [settings, setSettings] = useState(initialSettings);
+
+  // 오디오: 첫 제스처 잠금 해제 + 버튼 클릭음 (캡처 단계 전역 1곳)
+  useEffect(() => {
+    installUnlock();
+    const onClick = (e) => { if (e.target.closest && e.target.closest('button')) playSfx('ui'); };
+    window.addEventListener('click', onClick, true);
+    return () => window.removeEventListener('click', onClick, true);
+  }, []);
+  // 화면별 BGM: 인게임 트랙 / 그 외 타이틀 트랙
+  useEffect(() => { startBgm(screen === 'game' ? 'game' : 'title'); }, [screen]);
 
   if (screen === 'title')
     return <TitleScreen settings={settings} onSettingsChange={setSettings} onStart={() => setScreen('select')} />;

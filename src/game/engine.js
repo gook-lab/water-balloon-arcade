@@ -15,6 +15,7 @@ export class GameEngine {
     this.matchSeconds = parseInt(opts.matchSeconds ?? 180, 10);
     this.botCount = clamp(parseInt(opts.botCount ?? 3, 10), 1, 3);
     this.skill = opts.botSkill ?? '보통';
+    this.onSound = opts.onSound || null; // 사운드 배선 — 엔진은 이름만 방출, 재생은 바깥(audio 모듈) 몫
     this.keys = {};
     this.finished = null;
     this.lastHud = null;
@@ -25,6 +26,8 @@ export class GameEngine {
   }
 
   me() { return this.g && this.g.ents[0]; }
+
+  sound(name) { if (this.onSound) this.onSound(name); }
 
   start() {
     const T = this.T;
@@ -65,7 +68,11 @@ export class GameEngine {
       if (this.keys[k]) return;
       this.keys[k] = true;
       if (!this.finished) {
-        if (k === ' ') tryPlace(this.g, this.me());
+        if (k === ' ') {
+          const n = this.g.balloons.length;
+          tryPlace(this.g, this.me());
+          if (this.g.balloons.length > n) this.sound('place');
+        }
         if (k === 'x') this.usePin(this.me());
       }
     };
@@ -135,6 +142,7 @@ export class GameEngine {
           this.pickUp(e, k);
           if (wa !== undefined) {
             e.state = 'trapped'; e.trappedAt = now; e.path = []; e.trail = null; e.bubAt = now;
+            this.sound('trapped');
             spawnParts(g, 'splash', e.x, e.y, 14, '#bfefff');
           }
         } else if (e.state === 'trapped') {
@@ -163,6 +171,7 @@ export class GameEngine {
     const b = this.g.balloons.find((b) => b.owner === e.id);
     if (!b) return;
     e.pins--;
+    this.sound('pin');
     this.burst(b);
   }
 
@@ -170,15 +179,18 @@ export class GameEngine {
     const g = this.g, i = g.balloons.indexOf(b);
     if (i < 0) return;
     g.balloons.splice(i, 1);
+    this.sound('burst');
     const now = performance.now();
     blastTiles(g, b).forEach((k) => {
       g.water.set(k, now);
       const [x, y] = k.split(',').map(Number);
       if (g.grid[y][x] === 'tough') {
         g.grid[y][x] = 'soft'; g.vars.set(k, 0); g.dirty = true;
+        this.sound('crate');
         spawnParts(g, 'chip', x * g.T + g.T / 2, y * g.T + g.T / 2, 7, g.theme.hard[0]);
       } else if (g.grid[y][x] === 'soft') {
         g.grid[y][x] = 'empty'; g.vars.delete(k); g.dirty = true;
+        this.sound('crate');
         spawnParts(g, 'chip', x * g.T + g.T / 2, y * g.T + g.T / 2, 10, g.theme.soft[1]);
         if (Math.random() < 0.42) {
           g.items.set(k, ITEM_POOL[Math.floor(Math.random() * ITEM_POOL.length)]);
@@ -196,6 +208,7 @@ export class GameEngine {
     const g = this.g, it = g.items.get(k);
     if (!it) return;
     g.items.delete(k);
+    if (!e.isBot) this.sound(it === 'turtle' ? 'itemBad' : 'itemGood');
     if (it === 'balloon') e.maxBalloons = Math.min(8, e.maxBalloons + 1);
     else if (it === 'power') e.power = Math.min(8, e.power + 1);
     else if (it === 'speed') e.speed = Math.min(7, e.speed + 1);
@@ -207,6 +220,7 @@ export class GameEngine {
 
   kill(e) {
     e.state = 'dying'; e.dieAt = performance.now(); e.trail = null;
+    this.sound('die');
     spawnParts(this.g, 'splash', e.x, e.y, 18, '#ffffff');
     spawnParts(this.g, 'splash', e.x, e.y, 12, '#7fd8ff');
     this.g.pops.push({ x: e.x, y: e.y, at: performance.now() });
@@ -226,6 +240,7 @@ export class GameEngine {
   finish(kind) {
     if (this.finished) return;
     this.finished = kind;
+    this.sound(kind); // 'win' | 'lose' | 'draw'
     if (this.opts.onFinish) this.opts.onFinish(kind);
   }
 

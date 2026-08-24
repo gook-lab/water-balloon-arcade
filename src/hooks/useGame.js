@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { GameEngine } from '../game/engine.js';
+import { playSfx } from '../audio/audio.js';
 
 /**
  * 게임 루프는 엔진이 소유한다. React는 HUD 스냅샷만 구독한다.
@@ -20,7 +21,8 @@ export function useGame({ charIdx, mapIdx, settings }) {
       mapIdx,
       ...settings,
       onHud: setHud,
-      onFinish: setResult
+      onFinish: setResult,
+      onSound: playSfx
     });
     engineRef.current = engine;
     engine.start();

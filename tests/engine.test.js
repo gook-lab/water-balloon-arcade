@@ -15,13 +15,14 @@ const { GameEngine } = await import('../src/game/engine.js');
 function makeEngine(over = {}) {
   const onFinish = vi.fn();
   const onHud = vi.fn();
+  const onSound = vi.fn();
   const engine = new GameEngine({
     canvas: { width: 0, height: 0 },
     charIdx: 0, mapIdx: 0, tileSize: 100, matchSeconds: 180, botCount: 3, botSkill: '보통',
-    onFinish, onHud, ...over
+    onFinish, onHud, onSound, ...over
   });
   engine.g = makeGame({ T: 100 });
-  return { engine, onFinish, onHud };
+  return { engine, onFinish, onHud, onSound };
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -145,6 +146,62 @@ describe('승패 판정 (step)', () => {
     engine.step(g);
     engine.step(g);
     expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('사운드 배선 (onSound 콜백 — 엔진은 이름만 방출)', () => {
+  it('폭발·상자 파괴가 burst/crate 를 방출한다', () => {
+    const { engine, onSound } = makeEngine();
+    const g = engine.g;
+    g.grid[2][3] = 'soft';
+    g.balloons.push({ tx: 2, ty: 2, owner: 0, at: performance.now(), power: 1 });
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    engine.burst(g.balloons[0]);
+    const names = onSound.mock.calls.map((c) => c[0]);
+    expect(names).toContain('burst');
+    expect(names).toContain('crate');
+  });
+
+  it('플레이어 아이템 획득: 좋음/나쁨 구분, 봇 획득은 무음', () => {
+    const { engine, onSound } = makeEngine();
+    const g = engine.g;
+    const me = makeEnt(g, 0, 0);
+    const bot = makeEnt(g, 1, 0, { id: 1, isBot: true });
+    g.ents.push(me, bot);
+    g.items.set(key(0, 0), 'balloon');
+    engine.pickUp(me, key(0, 0));
+    g.items.set(key(0, 0), 'turtle');
+    engine.pickUp(me, key(0, 0));
+    g.items.set(key(1, 0), 'speed');
+    engine.pickUp(bot, key(1, 0));
+    const names = onSound.mock.calls.map((c) => c[0]);
+    expect(names).toEqual(['itemGood', 'itemBad']); // 봇 획득은 방출 없음
+  });
+
+  it('바늘 사용 → pin, 갇힘 → trapped, 탈락 → die', () => {
+    const { engine, onSound } = makeEngine();
+    const g = engine.g;
+    const me = makeEnt(g, 0, 0, { pins: 1 });
+    g.ents.push(me, makeEnt(g, 14, 0, { id: 1, isBot: true, nextThink: Infinity }));
+    g.balloons.push({ tx: 0, ty: 0, owner: 0, at: performance.now(), power: 1 });
+    engine.usePin(me);
+    expect(onSound.mock.calls.map((c) => c[0])).toContain('pin');
+    onSound.mockClear();
+    g.water.set(key(0, 0), performance.now()); // 플레이어가 서 있는 칸에 물
+    engine.step(g);
+    expect(onSound.mock.calls.map((c) => c[0])).toContain('trapped');
+    onSound.mockClear();
+    engine.kill(me);
+    expect(onSound.mock.calls.map((c) => c[0])).toContain('die');
+  });
+
+  it('승패 결정 시 결과음을 정확히 1회 방출한다', () => {
+    const { engine, onSound } = makeEngine();
+    const g = engine.g;
+    g.ents.push(makeEnt(g, 0, 0), makeEnt(g, 14, 0, { id: 1, isBot: true, state: 'dead' }));
+    engine.step(g);
+    engine.step(g);
+    expect(onSound.mock.calls.filter((c) => c[0] === 'win')).toHaveLength(1);
   });
 });
 

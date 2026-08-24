@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import { CHARS } from '../game/characters.js';
 import { charSprite } from '../game/sprites.js';
+import { getAudioSettings, setMuted, setVolume } from '../audio/audio.js';
 
 const TILE_OPTIONS = [64, 128, 256];
 const SKILL_OPTIONS = ['쉬움', '보통', '어려움'];
@@ -26,6 +27,38 @@ function OptionRow({ label, options, value, format, onPick }) {
         })}
       </div>
     </div>
+  );
+}
+
+const VOLUME_OPTIONS = [
+  { label: '낮음', value: 0.3 },
+  { label: '중간', value: 0.7 },
+  { label: '높음', value: 1 }
+];
+
+function SoundRows() {
+  const [audio, setAudio] = useState(getAudioSettings);
+  const volLabel = (VOLUME_OPTIONS.find((o) => Math.abs(o.value - audio.volume) < 0.15) || VOLUME_OPTIONS[1]).label;
+  return (
+    <>
+      <OptionRow
+        label="사운드"
+        options={['켬', '끔']}
+        value={audio.muted ? '끔' : '켬'}
+        onPick={(v) => { setMuted(v === '끔'); setAudio(getAudioSettings()); }}
+      />
+      {!audio.muted && (
+        <OptionRow
+          label="볼륨"
+          options={VOLUME_OPTIONS.map((o) => o.label)}
+          value={volLabel}
+          onPick={(label) => {
+            setVolume(VOLUME_OPTIONS.find((o) => o.label === label).value);
+            setAudio(getAudioSettings());
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -87,6 +120,7 @@ export default function TitleScreen({ settings, onSettingsChange, onStart }) {
             value={settings.botSkill}
             onPick={(botSkill) => onSettingsChange({ ...settings, botSkill })}
           />
+          <SoundRows />
         </div>
 
         <button className="btn-cta" style={{ fontSize: 27, padding: '15px 52px', boxShadow: '0 8px 0 #c47c00, 0 18px 30px rgba(0,0,0,.45)' }} onClick={onStart}>게임 시작</button>
