@@ -78,7 +78,7 @@
 
 - [ ] 승리(win) 경로 수동 플레이 확인 — 로직은 engine.test.js 승패 판정 테스트로 커버됨.
       실제 플레이 화면(승리 오버레이) 육안 확인만 남음 (`?bots=1` 추천)
-- [ ] git 저장소 초기화 여부 결정 (현재 미초기화)
+- [x] git 저장소 초기화 + `github.com/gook-lab/water-balloon-arcade` (private) 푸시 완료
 - [ ] 배포 여부 결정 (다른 토이들처럼 Vercel 후보)
 
 ## 관련 세션 참고
