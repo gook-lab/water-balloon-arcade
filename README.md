@@ -1,9 +1,9 @@
 # 물풍선 대작전 (water-balloon-arcade)
 
-크레이지아케이드류 2D 물풍선 아케이드 게임. 완성 동작하는 프로토타입
+크레이지아케이드류 2D 물풍선 아케이드 게임. 동작하는 프로토타입
 `../크레이지아케이드 (1)/물풍선 대작전.dc.html` 을 **React 18 + Vite** 프로젝트로 이식한 것이다.
 
-게임 규칙·수치·픽셀 스프라이트 데이터는 프로토타입에서 그대로 복사하며, 새로 발명하지 않는다.
+게임 규칙·수치·픽셀 스프라이트 데이터는 프로토타입에서 그대로 복사하며, 임의로 바꾸지 않는다.
 (상세 지시: [PROMPT.md](PROMPT.md))
 
 ## 실행
@@ -13,7 +13,7 @@ npm install
 npm run dev      # Vite 개발 서버
 npm run build    # 프로덕션 빌드 (dist/)
 npm run preview  # 빌드 결과 미리보기
-npm test         # Vitest — 50 테스트
+npm test         # Vitest
 ```
 
 ## 조작
@@ -38,7 +38,7 @@ npm test         # Vitest — 50 테스트
 - [docs/WORK-SPLIT.md](docs/WORK-SPLIT.md) — 멀티세션 분업 현황
 - [src/game/README.md](src/game/README.md) — 프로토타입 → 모듈 이식 대응표
 
-## 수용 기준 (완료 정의)
+## 수용 기준
 
 - [x] 세 화면 전환과 결과 화면 재시작이 동작한다. (headless 브라우저 검증, 콘솔 에러 0)
 - [x] 타일 64/128/256 전환 시 픽셀이 뭉개지지 않는다. (3종 모두 정수배 + pixelated 검증)
@@ -48,5 +48,3 @@ npm test         # Vitest — 50 테스트
 - 결과 경로: 패배·무승부 검증 완료. 승리(win)는 코드상 동일 분기라 리스크 낮으나 **수동 플레이 확인 권장**.
 
 QA/개발용 URL 파라미터: `?t=<초>` 제한시간, `?bots=<1..3>` 봇 수. (예: `?t=8` 로 무승부 즉시 재현)
-
-세부 진행 현황은 [docs/WORK-SPLIT.md](docs/WORK-SPLIT.md) 참조.

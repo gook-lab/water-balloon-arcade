@@ -150,7 +150,7 @@ HUD 칩(풍/줄/속/침)은 변경 없음 — 색 언어(핑크/시안/노랑/�
 
 ## 테스트 (Vitest)
 
-`npm test` = `vitest run`. `tests/` 파일 + `helpers.js`, 50 테스트.
+`npm test` = `vitest run`. `tests/` 파일 + `helpers.js`.
 (v4에서 +5: 레인 정렬 2, AI 회귀 3 — "물 경유 탈출로면 미설치", "탈출 경로 전 칸 안전",
 "스테일 경로 폐기". maps.test는 8종 기준. v5에서 +3: items.test.js.)
 
