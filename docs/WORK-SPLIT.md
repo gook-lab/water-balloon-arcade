@@ -83,7 +83,8 @@
 
 ## 관련 세션 참고
 
-별도 Orca 터미널의 세 번째 세션이 **roomcast** (3D 인테리어 플래너, `toy/roomcast`)를 전담.
+별도 Orca 터미널의 세 번째 세션이 **Room Simulator** (3D 인테리어 플래너, 로컬 `toy/roomcast`,
+GitHub `gook-lab/room-simulator` — 2026-08-25 roomcast에서 개명)를 전담.
 water-balloon-arcade와는 무관. 2026-08-24 밤 기준 피드백 3건(가구 22종·슬라이딩 충돌·undo/redo)
 완료, 테스트 51개, git 4커밋 — toy-37 독립 검증 통과. 상세는 `roomcast/docs/STATUS.md`.
 
