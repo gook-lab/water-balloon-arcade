@@ -4,14 +4,14 @@
 
 ## 핵심 원칙: 엔진과 React의 경계
 
-게임 루프는 **엔진이 소유**한다. React는 화면 라우팅과 HUD 표시만 담당한다.
+게임 루프는 **엔진이 소유**합니다. React는 화면 라우팅과 HUD 표시만 담당합니다.
 
-- `src/game/` 은 React를 import하지 않는 순수 JS 모듈이다.
-- 엔진은 캔버스에 직접 그린다. React state로 프레임을 돌리지 않는다.
+- `src/game/` 은 React를 import하지 않는 순수 JS 모듈입니다.
+- 엔진은 캔버스에 직접 그립니다. React state로 프레임을 돌리지 않습니다.
 - HUD 값(풍선/물줄기/속도/바늘, 남은 상대, 시계)은 **값이 실제로 바뀔 때만** `onHud` 콜백으로
-  올라온다. 구현 방식: 이벤트 카운터가 아니라, 엔진이 매 step마다 HUD 스냅샷을 만들어
-  직전 스냅샷과 **diff한 뒤 변경이 있을 때만** `onHud`를 호출한다. 프레임마다 호출 금지 —
-  60fps 리렌더를 막기 위한 계약이다.
+  올라옵니다. 구현 방식: 이벤트 카운터가 아니라, 엔진이 매 step마다 HUD 스냅샷을 만들어
+  직전 스냅샷과 **diff한 뒤 변경이 있을 때만** `onHud`를 호출합니다. 프레임마다 호출 금지 —
+  60fps 리렌더를 막기 위한 계약입니다.
 
 ```
 React (화면/HUD)                순수 JS 엔진 (src/game/)
@@ -32,13 +32,13 @@ React (화면/HUD)                순수 JS 엔진 (src/game/)
 GameScreen에서 `onChangeMap`/`onChangeChar`로 뒤로 이동 가능. 결과 오버레이의 재시작은
 `useGame.restart()`가 `round` 카운터를 올려 엔진을 재생성하는 방식.
 
-설정(settings)은 **App이 state로 소유**하고 TitleScreen에 `onSettingsChange`로 내려준다.
-TitleScreen에서 타일 크기(64/128/256)와 난이도(쉬움/보통/어려움)를 조정할 수 있다.
+설정(settings)은 **App이 state로 소유**하고 TitleScreen에 `onSettingsChange`로 내려줍니다.
+TitleScreen에서 타일 크기(64/128/256)와 난이도(쉬움/보통/어려움)를 조정할 수 있습니다.
 기본값: 타일 128, 180초, 봇 3, 보통.
 
 **QA/개발용 URL 파라미터**: `App.jsx`의 `initialSettings()`가 초기 설정을 만들 때
-`?t=<초>`(제한시간)와 `?bots=<1..3>`(봇 수)를 파싱한다. `DEFAULT_SETTINGS`는 그대로이며,
-파라미터가 없으면 기본값이 쓰인다. 예: `?t=8` → 8초 매치로 무승부 오버레이를 즉시 확인.
+`?t=<초>`(제한시간)와 `?bots=<1..3>`(봇 수)를 파싱합니다. `DEFAULT_SETTINGS`는 그대로이며,
+파라미터가 없으면 기본값이 쓰입니다. 예: `?t=8` → 8초 매치로 무승부 오버레이를 즉시 확인.
 
 ## 모듈 맵
 
@@ -86,19 +86,19 @@ engine.stop();
 ## 런타임 계약
 
 1. **rAF + 폴백 타이머**: 탭 비활성 시 브라우저가 rAF를 멈추므로, `setInterval(80ms)`에서
-   `performance.now() - lastTick > 150` 이면 `tick()` 을 직접 호출하는 폴백을 유지한다.
+   `performance.now() - lastTick > 150` 이면 `tick()` 을 직접 호출하는 폴백을 유지합니다.
 2. **픽셀 렌더**: 정수배 확대만. `ctx.imageSmoothingEnabled = false` + CSS `image-rendering: pixelated`.
 3. **스프라이트 캐시**: 오프스크린 canvas → 모듈 스코프 Map 캐시. 캐시 키 규칙 유지
    (물줄기는 프레임 포함 `wa{stage}f{frame}`). 좌표계는 여전히 S=16 월드 단위(`u = T/S`) —
-   스프라이트 해상도(32px)와 월드 단위는 별개다.
+   스프라이트 해상도(32px)와 월드 단위는 별개입니다.
 4. **키 입력**: `window` 리스너. 방향키/스페이스는 `preventDefault()`. `engine.stop()` 에서 반드시 해제.
    v7: 키 판정은 `keyName(e)`이 물리 키 `e.code`(KeyX/KeyW…) 우선 정규화 — 한글 IME 모드에서
    X/WASD가 'ㅌ'/'Process'로 들어와 무시되던 버그의 재발 방지 계약.
-5. **파티클 상한 260개**. `gr === 0` 인 파티클은 캐릭터 아래, 나머지는 위에 그린다.
+5. **파티클 상한 260개**. `gr === 0` 인 파티클은 캐릭터 아래, 나머지는 위에 그립니다.
 
 ## 스프라이트 파이프라인 v2 — 32px 렌더 + 캐시
 
-2026-08-24 사용자 지시로 비주얼을 프로토타입 16×16보다 고디테일로 재작업했다.
+2026-08-24 사용자 지시로 비주얼을 프로토타입 16×16보다 고디테일로 재작업했습니다.
 규칙 수치·좌표계·렌더 계약은 불변.
 
 | 대상 | 방식 |
@@ -122,7 +122,7 @@ engine.stop();
 
 ### v5 아이템 가시성 — 패널형 아이콘 + 블링크
 
-아이템이 바닥·블록 사이에서 눈에 띄지 않는다는 사용자 피드백에서 출발했다.
+아이템이 바닥·블록 사이에서 눈에 띄지 않는다는 사용자 피드백에서 출발했습니다.
 
 | 대상 | 내용 |
 |---|---|
@@ -146,7 +146,7 @@ HUD 칩(풍/줄/속/침)은 변경 없음 — 색 언어(핑크/시안/노랑/�
 - **autoplay 정책**: `installUnlock()` — 첫 pointerdown/keydown에서 AudioContext 생성/resume,
   그 전 BGM 요청은 pending 지연.
 - **엔진 순수성 유지**: 엔진은 `opts.onSound(name)` 콜백으로 이름만 방출하고 오디오를
-  import하지 않는다. 봇의 아이템 획득은 무음. `useGame`이 `playSfx`를 연결.
+  import하지 않습니다. 봇의 아이템 획득은 무음. `useGame`이 `playSfx`를 연결.
 
 ## 테스트 (Vitest)
 
@@ -164,11 +164,11 @@ HUD 칩(풍/줄/속/침)은 변경 없음 — 색 언어(핑크/시안/노랑/�
 | `tests/items.test.js` | `ITEM_ICONS` 풀 7종 아이콘 완비, 12×12·팔레트 키 무결성, bad=turtle 유일 |
 
 테스트 가능성 설계: rules/maps/ai는 DOM 무의존 순수 모듈이라 node에서 직접 실행되고,
-engine만 renderer를 mock한다 — 엔진/React 경계 원칙이 테스트에서도 그대로 배당금을 준다.
+engine만 renderer를 mock합니다 — 엔진/React 경계 원칙이 테스트에서도 그대로 배당금을 줍니다.
 (guk-lab-docs의 headless-harness 플레이북과 같은 원칙)
 
 승패 판정 3경로(lose/win/draw)가 엔진 테스트로 커버되면서, 기존에 남아 있던
-"win 경로 수동 확인" 리스크도 로직 수준에서는 해소됐다.
+"win 경로 수동 확인" 리스크도 로직 수준에서는 해소됐습니다.
 
 ## 빌드
 
