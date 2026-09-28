@@ -26,6 +26,14 @@ npm test         # Vitest
 | Space | Place a water balloon |
 | X | Needle (pop your own balloon immediately) |
 
+## Features
+
+### Difficulty Selection
+
+Pick the bot difficulty (Easy / Normal / Hard) on the title screen; the choice is remembered.
+Easy bots sometimes miss danger, Hard bots think more often and chase a nearby player before breaking blocks.
+The result screen shows the difficulty of the round. Parameters and headless measurements are in [GAME-DESIGN.md](docs/GAME-DESIGN.md) (Korean).
+
 ## Module Structure
 
 - `src/game/` — **pure JS game engine** with no React dependency (loop, AI, renderer, sprites, maps)

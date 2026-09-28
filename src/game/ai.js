@@ -4,6 +4,13 @@
 import { NX, NY, key, ITEM_DEFS } from './constants.js';
 import { tileOf, balloonAt, blastTiles, tryPlace, moveEnt } from './rules.js';
 
+// 난이도별 AI 파라미터. 보통 난이도는 프로토타입 기본값과 완전히 동일합니다.
+export const SKILL_PRESETS = {
+  '쉬움': { thinkInterval: 420, closeDistance: 1.5 },
+  '보통': { thinkInterval: 220, closeDistance: 2.6 },
+  '어려움': { thinkInterval: 130, closeDistance: 3.5, huntTiles: 7 }
+};
+
 export function dangerSet(game) {
   const d = new Set();
   game.balloons.forEach((b) => blastTiles(game, b).forEach((k) => d.add(k)));
@@ -37,11 +44,17 @@ export function bfs(game, e, sx, sy, isGoal, danger) {
 
 export function think(game, e, skill) {
   const [tx, ty] = tileOf(game, e), danger = dangerSet(game);
-  const easy = skill === '쉬움';
-  if (danger.has(key(tx, ty))) {
+
+  // 쉬움: 가끔 위험을 놓침 (80% 정확도)
+  let effectiveDanger = danger;
+  if (skill === '쉬움' && Math.random() < 0.2) {
+    effectiveDanger = new Set();
+  }
+
+  if (effectiveDanger.has(key(tx, ty))) {
     // 위험 타일을 밟지 않는 탈출로 우선 — 없을 때만 위험 통과 허용 (탈출 중 피폭 방지)
-    e.path = bfs(game, e, tx, ty, (x, y, k) => !danger.has(k), danger)
-      || bfs(game, e, tx, ty, (x, y, k) => !danger.has(k), null)
+    e.path = bfs(game, e, tx, ty, (x, y, k) => !effectiveDanger.has(k), effectiveDanger)
+      || bfs(game, e, tx, ty, (x, y, k) => !effectiveDanger.has(k), null)
       || [];
     return;
   }
@@ -49,11 +62,11 @@ export function think(game, e, skill) {
   const prey = game.ents.find((o) => o.id !== e.id && o.state === 'trapped');
   if (prey) {
     const [gx, gy] = tileOf(game, prey);
-    const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, danger);
+    const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, effectiveDanger);
     if (hunt && hunt.length) { e.path = hunt; return; }
   }
   if (game.items.size) {
-    const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, danger);
+    const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, effectiveDanger);
     if (p && p.length) { e.path = p; return; }
   }
   const player = game.ents[0];
@@ -61,34 +74,44 @@ export function think(game, e, skill) {
     const nx = x + dx, ny = y + dy;
     return nx >= 0 && ny >= 0 && nx < NX && ny < NY && (game.grid[ny][nx] === 'soft' || game.grid[ny][nx] === 'tough');
   });
-  const close = player.state === 'alive' && Math.abs(player.x - e.x) + Math.abs(player.y - e.y) < game.T * (easy ? 1.5 : 2.6);
+
+  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
+  const close = player.state === 'alive' && Math.abs(player.x - e.x) + Math.abs(player.y - e.y) < game.T * preset.closeDistance;
+
   if ((nearSoft(tx, ty) || close) && game.balloons.filter((b) => b.owner === e.id).length < e.maxBalloons) {
     // 탈출 경로가 확보될 때만 설치 (자기 풍선 자살 방지).
     // 자기 폭발선(도화선 2.6s)은 지나가도 되지만, 이미 존재하는 위험은 경유하지 않는 경로만 인정
-    const bd = new Set([...danger, ...blastTiles(game, { tx, ty, power: e.power })]);
-    const esc = bfs(game, e, tx, ty, (x, y, k) => !bd.has(k), danger);
+    const bd = new Set([...effectiveDanger, ...blastTiles(game, { tx, ty, power: e.power })]);
+    const esc = bfs(game, e, tx, ty, (x, y, k) => !bd.has(k), effectiveDanger);
     if (esc && esc.length) { tryPlace(game, e); e.path = esc; return; }
   }
-  let p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), danger);
+  let p = null;
+  // 어려움: 플레이어가 사냥 반경 안이면 블록보다 플레이어 쪽으로 먼저 파고든다
+  if (preset.huntTiles && player.state === 'alive') {
+    const [px, py] = tileOf(game, player);
+    if (Math.abs(px - tx) + Math.abs(py - ty) <= preset.huntTiles) {
+      p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, effectiveDanger);
+    }
+  }
+  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), effectiveDanger);
   if (!p || !p.length) {
     const [px, py] = tileOf(game, player);
-    p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, danger);
+    p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, effectiveDanger);
   }
-  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => k !== key(tx, ty), danger);
+  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => k !== key(tx, ty), effectiveDanger);
   e.path = p || [];
 }
 
-// 재계산 주기: 쉬움 420ms / 보통 220ms / 어려움 130ms
 export function driveBot(game, e, dt, now, skill) {
-  const iv = skill === '어려움' ? 130 : skill === '쉬움' ? 420 : 220;
-  if (now > e.nextThink) { e.nextThink = now + iv; think(game, e, skill); }
+  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
+  if (now > e.nextThink) { e.nextThink = now + preset.thinkInterval; think(game, e, skill); }
   // 스테일 경로 방지: 재계산 주기 사이에 다음 타일이 위험해졌으면(새 풍선·물줄기) 즉시 재계획
   if (e.path.length) {
     const danger = dangerSet(game);
     const [px2, py2] = e.path[0];
     const [cx2, cy2] = tileOf(game, e);
     if (danger.has(key(px2, py2)) && !danger.has(key(cx2, cy2))) {
-      e.nextThink = now + iv;
+      e.nextThink = now + preset.thinkInterval;
       think(game, e, skill);
     }
   }
@@ -97,8 +120,14 @@ export function driveBot(game, e, dt, now, skill) {
     const [tx, ty] = e.path[0];
     const cx = tx * T + T / 2, cy = ty * T + T / 2;
     if (Math.abs(cx - e.x) < 5 && Math.abs(cy - e.y) < 5) { e.path.shift(); continue; }
-    const dx = Math.abs(cx - e.x) > 3 ? Math.sign(cx - e.x) : 0;
-    const dy = Math.abs(cy - e.y) > 3 ? Math.sign(cy - e.y) : 0;
+    let dx = Math.abs(cx - e.x) > 3 ? Math.sign(cx - e.x) : 0;
+    let dy = Math.abs(cy - e.y) > 3 ? Math.sign(cy - e.y) : 0;
+    // 칸 사이에서 경로가 바뀌면 레인에서 벗어난 채 꺾으려다 벽 모서리에 막혀 멈춘다
+    // → 꺾기 전에 지금 칸의 중앙 레인부터 맞춘다 (허용 오차 0.1T 는 판정 반경 0.29T 와 합쳐도 옆 줄을 넘지 않음)
+    const [ctx, cty] = tileOf(game, e);
+    const lane = T * 0.1;
+    if (dx && Math.abs(cty * T + T / 2 - e.y) > lane) { dx = 0; dy = Math.sign(cty * T + T / 2 - e.y); }
+    else if (!dx && dy && Math.abs(ctx * T + T / 2 - e.x) > lane) { dy = 0; dx = Math.sign(ctx * T + T / 2 - e.x); }
     moveEnt(game, e, dx, dx ? 0 : dy, dt);
     return;
   }
