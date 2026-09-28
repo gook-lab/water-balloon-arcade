@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { key } from '../src/game/constants.js';
 import { dangerSet, bfs, think, driveBot, SKILL_PRESETS } from '../src/game/ai.js';
 import { makeGame, makeEnt } from './helpers.js';
@@ -140,85 +140,77 @@ describe('driveBot', () => {
 });
 
 describe('난이도 프리셋', () => {
-  it('SKILL_PRESETS이 모든 난이도를 포함한다', () => {
-    expect(SKILL_PRESETS).toHaveProperty('쉬움');
-    expect(SKILL_PRESETS).toHaveProperty('보통');
-    expect(SKILL_PRESETS).toHaveProperty('어려움');
+  afterEach(() => vi.restoreAllMocks());
+
+  it('보통은 기존 수치(재계산 220ms · 근접 2.6T)를 그대로 쓰고 사냥 반경이 없다', () => {
+    expect(SKILL_PRESETS['보통']).toEqual({ thinkInterval: 220, closeDistance: 2.6 });
+    expect(SKILL_PRESETS['쉬움']).toMatchObject({ thinkInterval: 420, closeDistance: 1.5 });
+    expect(SKILL_PRESETS['어려움'].thinkInterval).toBe(130);
   });
 
-  it('보통 난이도는 기존 수치를 유지한다', () => {
-    const preset = SKILL_PRESETS['보통'];
-    expect(preset.thinkInterval).toBe(220);  // 기존 재계산 주기
-    expect(preset.closeDistance).toBe(2.6);  // 기존 거리 판정
-  });
-
-  it('쉬움은 보통보다 느리고 덜 공격적이다', () => {
-    const easy = SKILL_PRESETS['쉬움'];
-    const normal = SKILL_PRESETS['보통'];
-    expect(easy.thinkInterval).toBeGreaterThan(normal.thinkInterval);  // 420 > 220
-    expect(easy.closeDistance).toBeLessThan(normal.closeDistance);     // 1.5 < 2.6
-  });
-
-  it('어려움은 보통보다 빠르고 더 공격적이다', () => {
-    const hard = SKILL_PRESETS['어려움'];
-    const normal = SKILL_PRESETS['보통'];
-    expect(hard.thinkInterval).toBeLessThan(normal.thinkInterval);  // 130 < 220
-    expect(hard.closeDistance).toBeGreaterThan(normal.closeDistance);  // 3.5 > 2.6
-  });
-});
-
-describe('난이도별 think 동작', () => {
-  it('쉬움은 플레이어를 덜 추적한다', () => {
+  it('보통·어려움은 판단에 난수를 쓰지 않고, 쉬움만 쓴다', () => {
+    const spy = vi.spyOn(Math, 'random');
     const g = makeGame({});
     const player = makeEnt(g, 14, 12);
     const bot = makeEnt(g, 0, 0, { id: 1, isBot: true });
     g.ents.push(player, bot);
-
-    // 같은 조건에서 쉬움과 보통이 다른 판정을 한다
-    const easyBot = makeEnt(g, 0, 0, { id: 2, isBot: true });
-    g.ents.push(easyBot);
-
     think(g, bot, '보통');
-    const normalPath = bot.path.length;
-
-    easyBot.path = [];  // 초기화
-    think(g, easyBot, '쉬움');
-    const easyPath = easyBot.path.length;
-
-    // 쉬움은 더 좁은 거리에서만 반응하므로 다른 결과가 나올 수 있다
-    // (단, 현재 setup에서는 정확히 비교하기 어려우므로, 단순히 프리셋 적용 확인)
-    expect(true).toBe(true);
+    think(g, bot, '어려움');
+    expect(spy).not.toHaveBeenCalled();
+    think(g, bot, '쉬움');
+    expect(spy).toHaveBeenCalled();
   });
 
-  it('쉬움이 위험을 간과할 수 있다', () => {
+  it('쉬움은 가끔 위험 칸에서 탈출 판단을 놓친다', () => {
     const g = makeGame({});
     const player = makeEnt(g, 14, 12);
     const bot = makeEnt(g, 0, 0, { id: 1, isBot: true });
     g.ents.push(player, bot);
+    g.balloons.push({ tx: 0, ty: 1, owner: 9, at: performance.now(), power: 2 }); // (0,0) 이 폭발 범위
+    const last = () => bot.path[bot.path.length - 1];
 
-    // 위험 설정: 풍선 폭발 범위
-    g.balloons.push({ tx: 0, ty: 1, owner: 9, at: performance.now(), power: 2 });
+    vi.spyOn(Math, 'random').mockReturnValue(0.9); // 제대로 판단 — 가까운 안전 칸으로 탈출
+    think(g, bot, '쉬움');
+    expect(dangerSet(g).has(key(...last()))).toBe(false);
+    expect(last()).not.toEqual([14, 12]);
 
-    // 여러 번 think를 호출해서 쉬움이 위험을 간과할 확률이 있는지 확인
-    let avoidedDanger = false;
-    for (let i = 0; i < 20; i++) {
-      bot.path = [];
-      think(g, bot, '쉬움');
-      // 쉬움은 20% 확률로 위험을 무시하고 다른 경로를 찾음
-      // 위험한 타일 (0,0)이 선택되면 avoidedDanger = true
-    }
-    // 쉬움도 아이템이나 보통과 같이 동작함 (다만 위험 판단이 틀릴 수 있음)
-    expect(bot.path.length).toBeGreaterThanOrEqual(0);
+    vi.spyOn(Math, 'random').mockReturnValue(0.1); // 놓침 — 위험을 모른 채 평소처럼 플레이어에게 간다
+    bot.path = [];
+    think(g, bot, '쉬움');
+    expect(last()).toEqual([14, 12]);
+  });
+
+  it('어려움은 사냥 반경 안의 플레이어를 블록보다 먼저 쫓는다', () => {
+    // 봇 (7,6) 오른쪽에 소프트 블록, 플레이어는 왼쪽 5칸 — 보통은 블록, 어려움은 플레이어 쪽으로
+    const rows = Array.from({ length: 13 }, () => '...............');
+    rows[6] = '.........S.....';
+    const make = () => {
+      const g = makeGame({ rows });
+      const player = makeEnt(g, 2, 6);
+      const bot = makeEnt(g, 7, 6, { id: 1, isBot: true });
+      g.ents.push(player, bot);
+      return { g, bot };
+    };
+    const normal = make();
+    think(normal.g, normal.bot, '보통');
+    const hard = make();
+    think(hard.g, hard.bot, '어려움');
+    expect(normal.bot.path[0][0]).toBeGreaterThan(7);
+    expect(hard.bot.path[0][0]).toBeLessThan(7);
   });
 });
 
-describe('난이도별 driveBot 동작', () => {
-  it('어려움은 보통보다 자주 재계산한다', () => {
-    // 프리셋에서 직접 확인
-    const hardPreset = SKILL_PRESETS['어려움'];
-    const normalPreset = SKILL_PRESETS['보통'];
-
-    // thinkInterval이 어려움이 더 짧음 (130 < 220)
-    expect(hardPreset.thinkInterval).toBeLessThan(normalPreset.thinkInterval);
+describe('driveBot 레인 정렬', () => {
+  it('칸 중앙에서 벗어난 채 옆으로 꺾어야 하면 먼저 레인을 맞춰 벽 모서리에 끼지 않는다', () => {
+    // (1,1) 이 하드 블록. 봇은 (0,0) 칸 오른쪽 끝·아래로 치우쳐 있고(경로가 칸 사이에서 바뀐 직후) (1,0) 으로 가야 한다
+    const g = makeGame({ rows: ['...............', '.H.............'] });
+    const player = makeEnt(g, 14, 12);
+    const bot = makeEnt(g, 0, 0, { id: 1, isBot: true, nextThink: Infinity });
+    bot.x += g.T * 0.2;
+    bot.y += g.T * 0.3;
+    g.ents.push(player, bot);
+    bot.path = [[1, 0]];
+    for (let i = 0; i < 60 && bot.path.length; i++) driveBot(g, bot, 0.016, performance.now(), '어려움');
+    expect(bot.path.length).toBe(0); // (1,0) 도착
   });
 });

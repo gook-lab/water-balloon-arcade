@@ -30,16 +30,9 @@ npm test         # Vitest
 
 ### Difficulty Selection
 
-Choose bot difficulty on the title screen (Easy / Normal / Hard).
-Your choice is saved in localStorage.
-
-| Difficulty | Bot think interval | Bot power | Bot speed | Item greed |
-|---|---|---|---|---|
-| Easy | 420ms | 1 | 2 | Low (70%) |
-| Normal | 220ms | 1 | 3 | Normal (100%) |
-| Hard | 130ms | 2 | 4 | High (130%) |
-
-The result screen displays your current difficulty.
+Pick the bot difficulty (Easy / Normal / Hard) on the title screen; the choice is remembered.
+Easy bots sometimes miss danger, Hard bots think more often and chase a nearby player before breaking blocks.
+The result screen shows the difficulty of the round. Parameters and headless measurements are in [GAME-DESIGN.md](docs/GAME-DESIGN.md) (Korean).
 
 ## Module Structure
 

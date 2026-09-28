@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sim:difficulty": "SIM=1 vitest run scripts/difficulty-sim.test.js --silent=false --reporter=verbose"
   },
   "dependencies": {
     "@kfonts/neodgm": "^0.5.0",

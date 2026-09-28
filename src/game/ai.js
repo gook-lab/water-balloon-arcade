@@ -8,7 +8,7 @@ import { tileOf, balloonAt, blastTiles, tryPlace, moveEnt } from './rules.js';
 export const SKILL_PRESETS = {
   '쉬움': { thinkInterval: 420, closeDistance: 1.5 },
   '보통': { thinkInterval: 220, closeDistance: 2.6 },
-  '어려움': { thinkInterval: 130, closeDistance: 3.5 }
+  '어려움': { thinkInterval: 130, closeDistance: 3.5, huntTiles: 7 }
 };
 
 export function dangerSet(game) {
@@ -85,7 +85,15 @@ export function think(game, e, skill) {
     const esc = bfs(game, e, tx, ty, (x, y, k) => !bd.has(k), effectiveDanger);
     if (esc && esc.length) { tryPlace(game, e); e.path = esc; return; }
   }
-  let p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), effectiveDanger);
+  let p = null;
+  // 어려움: 플레이어가 사냥 반경 안이면 블록보다 플레이어 쪽으로 먼저 파고든다
+  if (preset.huntTiles && player.state === 'alive') {
+    const [px, py] = tileOf(game, player);
+    if (Math.abs(px - tx) + Math.abs(py - ty) <= preset.huntTiles) {
+      p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, effectiveDanger);
+    }
+  }
+  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), effectiveDanger);
   if (!p || !p.length) {
     const [px, py] = tileOf(game, player);
     p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, effectiveDanger);
@@ -112,8 +120,14 @@ export function driveBot(game, e, dt, now, skill) {
     const [tx, ty] = e.path[0];
     const cx = tx * T + T / 2, cy = ty * T + T / 2;
     if (Math.abs(cx - e.x) < 5 && Math.abs(cy - e.y) < 5) { e.path.shift(); continue; }
-    const dx = Math.abs(cx - e.x) > 3 ? Math.sign(cx - e.x) : 0;
-    const dy = Math.abs(cy - e.y) > 3 ? Math.sign(cy - e.y) : 0;
+    let dx = Math.abs(cx - e.x) > 3 ? Math.sign(cx - e.x) : 0;
+    let dy = Math.abs(cy - e.y) > 3 ? Math.sign(cy - e.y) : 0;
+    // 칸 사이에서 경로가 바뀌면 레인에서 벗어난 채 꺾으려다 벽 모서리에 막혀 멈춘다
+    // → 꺾기 전에 지금 칸의 중앙 레인부터 맞춘다 (허용 오차 0.1T 는 판정 반경 0.29T 와 합쳐도 옆 줄을 넘지 않음)
+    const [ctx, cty] = tileOf(game, e);
+    const lane = T * 0.1;
+    if (dx && Math.abs(cty * T + T / 2 - e.y) > lane) { dx = 0; dy = Math.sign(cty * T + T / 2 - e.y); }
+    else if (!dx && dy && Math.abs(ctx * T + T / 2 - e.x) > lane) { dy = 0; dx = Math.sign(ctx * T + T / 2 - e.x); }
     moveEnt(game, e, dx, dx ? 0 : dy, dt);
     return;
   }

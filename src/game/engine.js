@@ -48,19 +48,11 @@ export class GameEngine {
     const ents = [mk(0, 0, 0, false, ch)];
     const others = CHARS.filter((c) => c.id !== ch.id).sort(() => Math.random() - 0.5);
     const spots = [[NX - 1, 0], [0, NY - 1], [NX - 1, NY - 1]];
-    // 난이도별 봇 스탯 설정
-    const skillStats = {
-      '쉬움': { power: 1, speed: 2 },
-      '보통': { power: 1, speed: 3 },
-      '어려움': { power: 2, speed: 4 }
-    };
-    const botStats = skillStats[this.skill] || skillStats['보통'];
-
     for (let i = 0; i < this.botCount; i++) {
       const c = others[i % others.length];
       ents.push(mk(i + 1, spots[i][0], spots[i][1], true, {
         ...c,
-        base: { maxBalloons: 1, power: botStats.power, speed: botStats.speed, pins: 0 }
+        base: { maxBalloons: 1, power: this.skill === '어려움' ? 2 : 1, speed: this.skill === '어려움' ? 4 : 3, pins: 0 }
       }));
     }
     this.g = {

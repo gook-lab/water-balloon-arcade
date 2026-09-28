@@ -15,7 +15,7 @@ function initialSettings() {
   // localStorage에서 난이도 로드
   try {
     const saved = JSON.parse(localStorage.getItem('wba-settings') || '{}');
-    if (saved.botSkill) s.botSkill = saved.botSkill;
+    if (['쉬움', '보통', '어려움'].includes(saved.botSkill)) s.botSkill = saved.botSkill;
   } catch (e) {
     // localStorage 읽기 실패: 기본값 사용
   }
