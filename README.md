@@ -16,6 +16,7 @@ npm run dev      # Vite 개발 서버
 npm run build    # 프로덕션 빌드 (dist/)
 npm run preview  # 빌드 결과 미리보기
 npm test         # Vitest
+npm run lint     # ESLint
 ```
 
 ## 조작

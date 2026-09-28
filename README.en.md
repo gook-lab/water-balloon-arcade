@@ -16,6 +16,7 @@ npm run dev      # Vite dev server
 npm run build    # production build (dist/)
 npm run preview  # preview the build
 npm test         # Vitest
+npm run lint     # ESLint
 ```
 
 ## Controls
