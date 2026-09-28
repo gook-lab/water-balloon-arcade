@@ -1,5 +1,3 @@
-import React from 'react';
-
 const COPY = {
   win: { title: '승리!', color: '#ffd23f', desc: '모든 상대를 물풍선에 가뒀어요.' },
   lose: { title: '패배', color: '#ff6f91', desc: '물에 맞아 탈락했어요.' },

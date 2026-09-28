@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import { MAPS } from '../game/maps.js';
 import { drawMapPreview } from '../game/renderer.js';
