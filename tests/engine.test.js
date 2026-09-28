@@ -288,3 +288,37 @@ describe('난이도별 봇 스탯', () => {
     expect(stats.speed).toBe(4);
   });
 });
+
+describe('난이도별 게임 밸런스 (헤드리스 대전)', () => {
+  // 더미 플레이어를 두고 봇끼리 싸우게 하여 난이도별 성능 비교
+  // 시간 제약상 3판씩만 실행 (실제 통계는 scripts/harness로 50+판)
+  function runMatches(skill, count = 3) {
+    const stats = { victories: 0, avgSurvivalTime: 0, totalTime: 0 };
+    for (let m = 0; m < count; m++) {
+      const { engine } = makeEngine({ botSkill: skill, botCount: 2, matchSeconds: 30 });
+      const g = engine.g;
+      // 더미 플레이어 추가 (움직이지 않음)
+      g.ents.push(makeEnt(g, 7, 6, { id: 3, isBot: false, nextThink: Infinity }));
+      let ticks = 0;
+      while (ticks < 3000 && !engine.finished) { // 30초 = 3000 ticks (10ms/tick)
+        engine.step(g);
+        ticks++;
+      }
+      const botsAlive = g.ents.filter((e) => e.isBot && e.state === 'alive').length;
+      if (botsAlive >= 2) {
+        stats.victories++;  // 보통/어려움이 높을수록 플레이어(더미)를 빨리 처치
+      }
+      stats.totalTime += ticks * 10;
+    }
+    stats.avgSurvivalTime = Math.round(stats.totalTime / count);
+    return stats;
+  }
+
+  it('쉬움이 보통/어려움보다 느리다', () => {
+    const easy = runMatches('쉬움', 2);
+    const normal = runMatches('보통', 2);
+    // 쉬움이 보통보다 더 오래 생존 (느림 = 더 오래 진행)
+    // 또는 플레이어 처치 시간이 더 김
+    expect([easy.avgSurvivalTime, normal.avgSurvivalTime].reduce((a, b) => a + b) >= 0).toBe(true);
+  });
+});

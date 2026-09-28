@@ -4,26 +4,11 @@
 import { NX, NY, key, ITEM_DEFS } from './constants.js';
 import { tileOf, balloonAt, blastTiles, tryPlace, moveEnt } from './rules.js';
 
-// 난이도별 AI 파라미터 프리셋
+// 난이도별 AI 파라미터. 보통 난이도는 프로토타입 기본값과 완전히 동일합니다.
 export const SKILL_PRESETS = {
-  '쉬움': {
-    thinkInterval: 420,    // 재계산 주기 (ms)
-    closeDistance: 1.5,    // 플레이어 근접 판정 거리 배수 (T 단위)
-    itemHungry: 0.7,       // 아이템 욕심 (더 낮으면 아이템 무시 확률 높음)
-    dangerAccuracy: 0.8,   // 위험 판단 정확도 (0.8 = 20% 위험 간과)
-  },
-  '보통': {
-    thinkInterval: 220,
-    closeDistance: 2.6,
-    itemHungry: 1.0,
-    dangerAccuracy: 1.0,
-  },
-  '어려움': {
-    thinkInterval: 130,
-    closeDistance: 2.6,
-    itemHungry: 1.3,       // 아이템을 더 열심히 찾음
-    dangerAccuracy: 1.0,
-  }
+  '쉬움': { thinkInterval: 420, closeDistance: 1.5 },
+  '보통': { thinkInterval: 220, closeDistance: 2.6 },
+  '어려움': { thinkInterval: 130, closeDistance: 3.5 }
 };
 
 export function dangerSet(game) {
@@ -59,12 +44,17 @@ export function bfs(game, e, sx, sy, isGoal, danger) {
 
 export function think(game, e, skill) {
   const [tx, ty] = tileOf(game, e), danger = dangerSet(game);
-  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
 
-  if (danger.has(key(tx, ty))) {
+  // 쉬움: 가끔 위험을 놓침 (80% 정확도)
+  let effectiveDanger = danger;
+  if (skill === '쉬움' && Math.random() < 0.2) {
+    effectiveDanger = new Set();
+  }
+
+  if (effectiveDanger.has(key(tx, ty))) {
     // 위험 타일을 밟지 않는 탈출로 우선 — 없을 때만 위험 통과 허용 (탈출 중 피폭 방지)
-    e.path = bfs(game, e, tx, ty, (x, y, k) => !danger.has(k), danger)
-      || bfs(game, e, tx, ty, (x, y, k) => !danger.has(k), null)
+    e.path = bfs(game, e, tx, ty, (x, y, k) => !effectiveDanger.has(k), effectiveDanger)
+      || bfs(game, e, tx, ty, (x, y, k) => !effectiveDanger.has(k), null)
       || [];
     return;
   }
@@ -72,12 +62,11 @@ export function think(game, e, skill) {
   const prey = game.ents.find((o) => o.id !== e.id && o.state === 'trapped');
   if (prey) {
     const [gx, gy] = tileOf(game, prey);
-    const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, danger);
+    const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, effectiveDanger);
     if (hunt && hunt.length) { e.path = hunt; return; }
   }
-  // 아이템 욕심도에 따라 확률적으로 아이템 추적 스킵
-  if (game.items.size && Math.random() < preset.itemHungry) {
-    const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, danger);
+  if (game.items.size) {
+    const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, effectiveDanger);
     if (p && p.length) { e.path = p; return; }
   }
   const player = game.ents[0];
@@ -85,20 +74,23 @@ export function think(game, e, skill) {
     const nx = x + dx, ny = y + dy;
     return nx >= 0 && ny >= 0 && nx < NX && ny < NY && (game.grid[ny][nx] === 'soft' || game.grid[ny][nx] === 'tough');
   });
+
+  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
   const close = player.state === 'alive' && Math.abs(player.x - e.x) + Math.abs(player.y - e.y) < game.T * preset.closeDistance;
+
   if ((nearSoft(tx, ty) || close) && game.balloons.filter((b) => b.owner === e.id).length < e.maxBalloons) {
     // 탈출 경로가 확보될 때만 설치 (자기 풍선 자살 방지).
     // 자기 폭발선(도화선 2.6s)은 지나가도 되지만, 이미 존재하는 위험은 경유하지 않는 경로만 인정
-    const bd = new Set([...danger, ...blastTiles(game, { tx, ty, power: e.power })]);
-    const esc = bfs(game, e, tx, ty, (x, y, k) => !bd.has(k), danger);
+    const bd = new Set([...effectiveDanger, ...blastTiles(game, { tx, ty, power: e.power })]);
+    const esc = bfs(game, e, tx, ty, (x, y, k) => !bd.has(k), effectiveDanger);
     if (esc && esc.length) { tryPlace(game, e); e.path = esc; return; }
   }
-  let p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), danger);
+  let p = bfs(game, e, tx, ty, (x, y, k) => nearSoft(x, y) && k !== key(tx, ty), effectiveDanger);
   if (!p || !p.length) {
     const [px, py] = tileOf(game, player);
-    p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, danger);
+    p = bfs(game, e, tx, ty, (x, y) => x === px && y === py, effectiveDanger);
   }
-  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => k !== key(tx, ty), danger);
+  if (!p || !p.length) p = bfs(game, e, tx, ty, (x, y, k) => k !== key(tx, ty), effectiveDanger);
   e.path = p || [];
 }
 
