@@ -11,6 +11,15 @@ const DEFAULT_SETTINGS = { tileSize: 128, matchSeconds: 180, botCount: 3, botSki
 function initialSettings() {
   const q = new URLSearchParams(window.location.search);
   const s = { ...DEFAULT_SETTINGS };
+
+  // localStorage에서 난이도 로드
+  try {
+    const saved = JSON.parse(localStorage.getItem('wba-settings') || '{}');
+    if (saved.botSkill) s.botSkill = saved.botSkill;
+  } catch (e) {
+    // localStorage 읽기 실패: 기본값 사용
+  }
+
   if (q.get('t')) s.matchSeconds = Math.max(3, parseInt(q.get('t'), 10) || s.matchSeconds);
   if (q.get('bots')) s.botCount = Math.min(3, Math.max(1, parseInt(q.get('bots'), 10) || s.botCount));
   return s;
@@ -32,8 +41,18 @@ export default function App() {
   // 화면별 BGM: 인게임 트랙 / 그 외 타이틀 트랙
   useEffect(() => { startBgm(screen === 'game' ? 'game' : 'title'); }, [screen]);
 
+  const handleSettingsChange = (newSettings) => {
+    setSettings(newSettings);
+    // localStorage에 난이도 저장
+    try {
+      localStorage.setItem('wba-settings', JSON.stringify({ botSkill: newSettings.botSkill }));
+    } catch (e) {
+      // localStorage 쓰기 실패: 무시
+    }
+  };
+
   if (screen === 'title')
-    return <TitleScreen settings={settings} onSettingsChange={setSettings} onStart={() => setScreen('select')} />;
+    return <TitleScreen settings={settings} onSettingsChange={handleSettingsChange} onStart={() => setScreen('select')} />;
   if (screen === 'select')
     return (
       <CharacterSelect

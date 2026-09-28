@@ -19,7 +19,7 @@ export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onC
               style={{ display: 'block', height: '72vh', width: 'auto', maxWidth: '92vw', aspectRatio: '15 / 13', background: '#0e1226' }}
             />
             {result && (
-              <ResultOverlay result={result} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
+              <ResultOverlay result={result} botSkill={settings.botSkill} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
             )}
           </div>
         </div>

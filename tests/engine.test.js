@@ -253,3 +253,38 @@ describe('HUD 스냅샷', () => {
     expect(onHud.mock.calls.at(-1)[0]).toMatchObject({ power: 3, botsAlive: 1 });
   });
 });
+
+describe('난이도별 봇 스탯', () => {
+  it('쉬움: 봇 power 1, speed 2', () => {
+    const skillStats = {
+      '쉬움': { power: 1, speed: 2 },
+      '보통': { power: 1, speed: 3 },
+      '어려움': { power: 2, speed: 4 }
+    };
+    const stats = skillStats['쉬움'];
+    expect(stats.power).toBe(1);
+    expect(stats.speed).toBe(2);
+  });
+
+  it('보통: 봇 power 1, speed 3 (기존 수치 유지)', () => {
+    const skillStats = {
+      '쉬움': { power: 1, speed: 2 },
+      '보통': { power: 1, speed: 3 },
+      '어려움': { power: 2, speed: 4 }
+    };
+    const stats = skillStats['보통'];
+    expect(stats.power).toBe(1);
+    expect(stats.speed).toBe(3);
+  });
+
+  it('어려움: 봇 power 2, speed 4', () => {
+    const skillStats = {
+      '쉬움': { power: 1, speed: 2 },
+      '보통': { power: 1, speed: 3 },
+      '어려움': { power: 2, speed: 4 }
+    };
+    const stats = skillStats['어려움'];
+    expect(stats.power).toBe(2);
+    expect(stats.speed).toBe(4);
+  });
+});

@@ -4,6 +4,28 @@
 import { NX, NY, key, ITEM_DEFS } from './constants.js';
 import { tileOf, balloonAt, blastTiles, tryPlace, moveEnt } from './rules.js';
 
+// 난이도별 AI 파라미터 프리셋
+export const SKILL_PRESETS = {
+  '쉬움': {
+    thinkInterval: 420,    // 재계산 주기 (ms)
+    closeDistance: 1.5,    // 플레이어 근접 판정 거리 배수 (T 단위)
+    itemHungry: 0.7,       // 아이템 욕심 (더 낮으면 아이템 무시 확률 높음)
+    dangerAccuracy: 0.8,   // 위험 판단 정확도 (0.8 = 20% 위험 간과)
+  },
+  '보통': {
+    thinkInterval: 220,
+    closeDistance: 2.6,
+    itemHungry: 1.0,
+    dangerAccuracy: 1.0,
+  },
+  '어려움': {
+    thinkInterval: 130,
+    closeDistance: 2.6,
+    itemHungry: 1.3,       // 아이템을 더 열심히 찾음
+    dangerAccuracy: 1.0,
+  }
+};
+
 export function dangerSet(game) {
   const d = new Set();
   game.balloons.forEach((b) => blastTiles(game, b).forEach((k) => d.add(k)));
@@ -37,7 +59,8 @@ export function bfs(game, e, sx, sy, isGoal, danger) {
 
 export function think(game, e, skill) {
   const [tx, ty] = tileOf(game, e), danger = dangerSet(game);
-  const easy = skill === '쉬움';
+  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
+
   if (danger.has(key(tx, ty))) {
     // 위험 타일을 밟지 않는 탈출로 우선 — 없을 때만 위험 통과 허용 (탈출 중 피폭 방지)
     e.path = bfs(game, e, tx, ty, (x, y, k) => !danger.has(k), danger)
@@ -52,7 +75,8 @@ export function think(game, e, skill) {
     const hunt = bfs(game, e, tx, ty, (x, y) => x === gx && y === gy, danger);
     if (hunt && hunt.length) { e.path = hunt; return; }
   }
-  if (game.items.size) {
+  // 아이템 욕심도에 따라 확률적으로 아이템 추적 스킵
+  if (game.items.size && Math.random() < preset.itemHungry) {
     const p = bfs(game, e, tx, ty, (x, y, k) => game.items.has(k) && !ITEM_DEFS[game.items.get(k)].bad, danger);
     if (p && p.length) { e.path = p; return; }
   }
@@ -61,7 +85,7 @@ export function think(game, e, skill) {
     const nx = x + dx, ny = y + dy;
     return nx >= 0 && ny >= 0 && nx < NX && ny < NY && (game.grid[ny][nx] === 'soft' || game.grid[ny][nx] === 'tough');
   });
-  const close = player.state === 'alive' && Math.abs(player.x - e.x) + Math.abs(player.y - e.y) < game.T * (easy ? 1.5 : 2.6);
+  const close = player.state === 'alive' && Math.abs(player.x - e.x) + Math.abs(player.y - e.y) < game.T * preset.closeDistance;
   if ((nearSoft(tx, ty) || close) && game.balloons.filter((b) => b.owner === e.id).length < e.maxBalloons) {
     // 탈출 경로가 확보될 때만 설치 (자기 풍선 자살 방지).
     // 자기 폭발선(도화선 2.6s)은 지나가도 되지만, 이미 존재하는 위험은 경유하지 않는 경로만 인정
@@ -78,17 +102,16 @@ export function think(game, e, skill) {
   e.path = p || [];
 }
 
-// 재계산 주기: 쉬움 420ms / 보통 220ms / 어려움 130ms
 export function driveBot(game, e, dt, now, skill) {
-  const iv = skill === '어려움' ? 130 : skill === '쉬움' ? 420 : 220;
-  if (now > e.nextThink) { e.nextThink = now + iv; think(game, e, skill); }
+  const preset = SKILL_PRESETS[skill] || SKILL_PRESETS['보통'];
+  if (now > e.nextThink) { e.nextThink = now + preset.thinkInterval; think(game, e, skill); }
   // 스테일 경로 방지: 재계산 주기 사이에 다음 타일이 위험해졌으면(새 풍선·물줄기) 즉시 재계획
   if (e.path.length) {
     const danger = dangerSet(game);
     const [px2, py2] = e.path[0];
     const [cx2, cy2] = tileOf(game, e);
     if (danger.has(key(px2, py2)) && !danger.has(key(cx2, cy2))) {
-      e.nextThink = now + iv;
+      e.nextThink = now + preset.thinkInterval;
       think(game, e, skill);
     }
   }

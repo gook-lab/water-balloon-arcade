@@ -26,6 +26,21 @@ npm test         # Vitest
 | Space | Place a water balloon |
 | X | Needle (pop your own balloon immediately) |
 
+## Features
+
+### Difficulty Selection
+
+Choose bot difficulty on the title screen (Easy / Normal / Hard).
+Your choice is saved in localStorage.
+
+| Difficulty | Bot think interval | Bot power | Bot speed | Item greed |
+|---|---|---|---|---|
+| Easy | 420ms | 1 | 2 | Low (70%) |
+| Normal | 220ms | 1 | 3 | Normal (100%) |
+| Hard | 130ms | 2 | 4 | High (130%) |
+
+The result screen displays your current difficulty.
+
 ## Module Structure
 
 - `src/game/` — **pure JS game engine** with no React dependency (loop, AI, renderer, sprites, maps)
