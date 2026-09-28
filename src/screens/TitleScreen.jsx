@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import { CHARS } from '../game/characters.js';
 import { charSprite } from '../game/sprites.js';

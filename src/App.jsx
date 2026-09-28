@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { installUnlock, startBgm, playSfx } from './audio/audio.js';
 import TitleScreen from './screens/TitleScreen.jsx';
 import CharacterSelect from './screens/CharacterSelect.jsx';
@@ -16,7 +16,7 @@ function initialSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('wba-settings') || '{}');
     if (['쉬움', '보통', '어려움'].includes(saved.botSkill)) s.botSkill = saved.botSkill;
-  } catch (e) {
+  } catch {
     // localStorage 읽기 실패: 기본값 사용
   }
 
@@ -46,7 +46,7 @@ export default function App() {
     // localStorage에 난이도 저장
     try {
       localStorage.setItem('wba-settings', JSON.stringify({ botSkill: newSettings.botSkill }));
-    } catch (e) {
+    } catch {
       // localStorage 쓰기 실패: 무시
     }
   };

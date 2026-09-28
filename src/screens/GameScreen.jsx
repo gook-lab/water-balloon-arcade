@@ -1,4 +1,3 @@
-import React from 'react';
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import HudBar from '../components/HudBar.jsx';
 import ResultOverlay from '../components/ResultOverlay.jsx';

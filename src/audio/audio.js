@@ -17,13 +17,13 @@ function load() {
   try {
     const s = JSON.parse(localStorage.getItem(LS_KEY));
     if (s && typeof s === 'object') return { muted: !!s.muted, volume: clamp01(s.volume ?? 0.7) };
-  } catch (e) { /* node·프라이빗 모드 등 — 기본값 사용 */ }
+  } catch { /* node·프라이빗 모드 등 — 기본값 사용 */ }
   return { muted: false, volume: 0.7 };
 }
 const settings = load();
 
 function save() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+  try { localStorage.setItem(LS_KEY, JSON.stringify(settings)); } catch { /* ignore */ }
 }
 
 function ensureCtx() {
