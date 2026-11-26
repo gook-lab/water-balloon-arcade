@@ -87,7 +87,8 @@ async function walkTo(page, k, axis, target) {
   }
   await sleep(500);
   await shot(page, path.join(OUT, 'result-lose.png'));
-  const overlay = await page.locator('text=패배').count();
+  // 패배 제목: r1 「아쉬워요」 · 옛 「패배」
+  const overlay = (await page.locator('.result-overlay').count()) || (await page.locator('text=패배').count());
   check('갇힘: 내 풍선 2.6초 뒤 갇힘', trappedAt && Math.abs(trappedAt - tPlace - 2600) < 250, { ms: trappedAt && trappedAt - tPlace });
   check('탈락: 갇힌 지 4초 뒤 탈락', trappedAt && deadAt && Math.abs(deadAt - trappedAt - 4000) < 300, { ms: deadAt && deadAt - trappedAt });
   check('패배 결과 화면', kind === 'lose' && overlay > 0, { kind, overlayToFinishMs: finishAt && finishAt - deadAt });

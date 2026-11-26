@@ -4,7 +4,7 @@
 // 실행: node docs/upgrade/qa/a11y.mjs --url <URL> --label <이름>
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium, AXE_PATH, args, shot, collectErrors, ENGINE_PROBE, enterGame, writeJson, sleep, ensureDir } from './lib.mjs';
+import { chromium, AXE_PATH, args, shot, collectErrors, ENGINE_PROBE, enterGame, clickText, optionButton, NAMES, writeJson, sleep, ensureDir } from './lib.mjs';
 
 const A = args({ url: 'http://127.0.0.1:5310', label: 'local', out: path.join(path.dirname(new URL(import.meta.url).pathname), 'out') });
 const OUT = ensureDir(path.join(A.out, 'a11y', A.label));
@@ -82,13 +82,13 @@ async function runAxe(page, name) {
   await page.goto(BASE + '/?t=4&bots=1', { waitUntil: 'networkidle' });
   await sleep(500);
   await runAxe(page, 'title');
-  await page.getByRole('button', { name: '게임 시작' }).click(); await sleep(400);
+  await clickText(page, NAMES.start); await sleep(400);
   await runAxe(page, 'select');
-  await page.getByRole('button', { name: '다음' }).click(); await sleep(400);
+  await clickText(page, NAMES.next); await sleep(400);
   await runAxe(page, 'map');
-  await page.getByRole('button', { name: '입장' }).click(); await sleep(800);
+  await clickText(page, NAMES.enter); await sleep(800);
   await runAxe(page, 'game');
-  await page.waitForSelector('text=다시 하기', { timeout: 15000 }); await sleep(500);
+  await page.waitForSelector('text=다시 하기', { timeout: 20000 }); await sleep(500);
   await runAxe(page, 'result');
   await ctx.close();
 }
@@ -130,17 +130,20 @@ async function runAxe(page, name) {
   await page.mouse.click(5, 5); // 빈 곳 클릭 = 첫 제스처
   await sleep(1200);
   a.afterGesture = await page.evaluate(() => ({ contexts: window.__ac.length, state: window.__ac[0]?.state, osc: window.__osc, master: window.__gains[0]?.gain.value }));
-  // 켬/끔 · 볼륨 (master = 첫 gain)
-  await page.getByRole('button', { name: '낮음' }).click(); await sleep(100);
+  // 켬/끔 · 볼륨 (master = 첫 gain). r1 은 화질 「낮음」 · 범위 보기 「끔」과 이름이 겹쳐 옵션 줄(group)로 좁힌다
+  await (await optionButton(page, '볼륨', '낮음')).click(); await sleep(100);
   a.volLow = await page.evaluate(() => window.__gains[0].gain.value);
-  await page.getByRole('button', { name: '끔' }).click(); await sleep(100);
+  await (await optionButton(page, '사운드', '끔')).click(); await sleep(100);
   const o1 = await page.evaluate(() => window.__osc); await sleep(2000); const o2 = await page.evaluate(() => window.__osc);
-  a.muted = { master: await page.evaluate(() => window.__gains[0].gain.value), volumeRowHidden: (await page.getByRole('button', { name: '낮음' }).count()) === 0, bgmOscPer2sWhileMuted: o2 - o1, saved: await page.evaluate(() => localStorage.getItem('wba-audio')) };
+  a.muted = { master: await page.evaluate(() => window.__gains[0].gain.value), volumeRowHidden: (await page.getByRole('group', { name: '사운드', exact: true }).count()) ? (await page.getByRole('group', { name: '볼륨', exact: true }).count()) === 0 : (await page.getByRole('button', { name: '낮음' }).count()) === 0, bgmOscPer2sWhileMuted: o2 - o1, saved: await page.evaluate(() => localStorage.getItem('wba-audio')) };
   await page.reload({ waitUntil: 'networkidle' });
-  a.persistAfterReload = await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.innerText === '끔')?.className);
+  a.persistAfterReload = await page.evaluate(() => {
+    const grp = [...document.querySelectorAll('[role=group]')].find((g) => document.getElementById(g.getAttribute('aria-labelledby'))?.textContent === '사운드');
+    return [...(grp || document).querySelectorAll('button')].find((b) => b.innerText === '끔')?.className;
+  });
   await page.mouse.click(5, 5);
-  await page.getByRole('button', { name: '켬' }).click(); await sleep(100);
-  await page.getByRole('button', { name: '중간' }).click(); await sleep(100);
+  await (await optionButton(page, '사운드', '켬')).click(); await sleep(100);
+  await (await optionButton(page, '볼륨', '중간')).click(); await sleep(100);
   // 게임 안에서 탭 전환
   await enterGame(page, {});
   await sleep(1500);

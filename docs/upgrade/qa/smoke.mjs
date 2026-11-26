@@ -1,8 +1,9 @@
-// 화면 흐름 스모크 — 세 크기 × (타이틀 → 캐릭터 → 맵 → 게임 → 결과 → 다시 하기 → 맵 변경 → 캐릭터)
+// 화면 흐름 스모크 — 세 크기 × (타이틀 → 캐릭터 → 맵 → 게임 → 결과 → 다시 하기 → 맵 바꾸기(옛 맵 변경) → 캐릭터)
+// 버튼 이름은 lib.mjs NAMES 후보(새 이름 · 옛 이름)로 찾는다 — 1단계 기준선과 같은 스크립트로 비교.
 // + 키보드만으로 끝까지 가기(데스크톱) + 콘솔 오류 · 가로 넘침 · 화면 밖 버튼.
 // 실행: node docs/upgrade/qa/smoke.mjs --url http://127.0.0.1:5310 --label local
 import path from 'node:path';
-import { chromium, SIZES, args, shot, collectErrors, ENGINE_PROBE, clickText, writeJson, sleep } from './lib.mjs';
+import { chromium, SIZES, args, shot, collectErrors, ENGINE_PROBE, clickText, findButton, waitButton, waitPlaying, NAMES, writeJson, sleep } from './lib.mjs';
 
 const A = args({ url: 'http://127.0.0.1:5310', label: 'local', out: path.join(path.dirname(new URL(import.meta.url).pathname), 'out') });
 const OUT = path.join(A.out, 'smoke', A.label);
@@ -37,29 +38,29 @@ async function flow(browser, sizeName) {
   await page.goto(BASE + '/?t=4&bots=3', { waitUntil: 'networkidle' });
   await sleep(400);
   res.steps.title = await layoutCheck(page); await shot(page, path.join(dir, '1-title.png'), { fullPage: true });
-  await clickText(page, '게임 시작'); await sleep(350);
+  await clickText(page, NAMES.start); await sleep(350);
   res.steps.select = await layoutCheck(page); await shot(page, path.join(dir, '2-select.png'), { fullPage: true });
-  await clickText(page, '다음'); await sleep(350);
+  await clickText(page, NAMES.next); await sleep(350);
   res.steps.map = await layoutCheck(page); await shot(page, path.join(dir, '3-map.png'), { fullPage: true });
-  await clickText(page, '입장'); await sleep(1200);
+  await clickText(page, NAMES.enter); await sleep(1200);
   res.steps.game = await layoutCheck(page); await shot(page, path.join(dir, '4-game.png'));
-  await page.waitForSelector('text=다시 하기', { timeout: 15000 });
+  await page.waitForSelector('text=다시 하기', { timeout: 20000 });
   await sleep(500);
   res.steps.result = await layoutCheck(page);
   res.steps.result.kind = await page.evaluate(() => window.__wbaEngine()?.finished);
   await shot(page, path.join(dir, '5-result.png'));
-  await clickText(page, '다시 하기'); await sleep(600);
-  res.steps.restart = { resultGone: (await page.locator('text=다시 하기').count()) === 0, engineFinished: await page.evaluate(() => window.__wbaEngine()?.finished ?? null) };
-  await page.waitForSelector('text=맵 변경', { timeout: 15000 });
-  await clickText(page, '맵 변경'); await sleep(300);
-  res.steps.toMap = await page.locator('text=맵 선택').count() > 0;
-  await clickText(page, '입장');
-  await page.waitForSelector('text=캐릭터', { timeout: 15000 });
+  await clickText(page, NAMES.restart); await sleep(600);
+  res.steps.restart = { resultGone: (await findButton(page, NAMES.restart)) === null, engineFinished: await page.evaluate(() => window.__wbaEngine()?.finished ?? null) };
+  await waitButton(page, NAMES.changeMap, 20000);
+  res.steps.changeMapName = await clickText(page, NAMES.changeMap); await sleep(300);
+  res.steps.toMap = await page.getByRole('heading', { name: NAMES.mapTitle[0] }).count() > 0 || await page.locator('text=' + NAMES.mapTitle[1]).count() > 0;
+  await clickText(page, NAMES.enter);
+  await waitButton(page, NAMES.changeChar, 20000);
   await sleep(300);
-  await page.getByRole('button', { name: '캐릭터', exact: true }).click(); await sleep(300);
-  res.steps.toChar = await page.locator('text=캐릭터 선택').count() > 0;
-  await clickText(page, '뒤로'); await sleep(200);
-  res.steps.backToTitle = await page.locator('text=게임 시작').count() > 0;
+  res.steps.changeCharName = await clickText(page, NAMES.changeChar); await sleep(300);
+  res.steps.toChar = await page.getByRole('heading', { name: NAMES.charTitle[0] }).count() > 0 || await page.locator('text=' + NAMES.charTitle[1]).count() > 0;
+  await clickText(page, NAMES.back); await sleep(200);
+  res.steps.backToTitle = (await findButton(page, NAMES.start)) !== null;
   res.ms = Date.now() - t0;
   res.errors = errs;
   await ctx.close();
@@ -86,12 +87,12 @@ async function keyboardOnly(browser) {
     return { screen, seq };
   };
   const out = { orders: [], notes: [] };
-  // 타이틀: Tab 순회 (최대 14번) 후 '게임 시작' 까지 Tab
+  // 타이틀: Tab 순회 (12번) 후 시작 버튼(「한 판 하기」 · 옛 「게임 시작」)까지 Tab
   out.orders.push(await order('title', 12));
   await shot(page, path.join(dir, 'title-focus.png'));
   await page.goto(BASE + '/?t=4&bots=1', { waitUntil: 'networkidle' });
   let found = false;
-  for (let i = 0; i < 20; i++) { await page.keyboard.press('Tab'); if ((await focusInfo()).text === '게임 시작') { found = true; break; } }
+  for (let i = 0; i < 30; i++) { await page.keyboard.press('Tab'); if (NAMES.start.includes((await focusInfo()).text)) { found = true; break; } }
   out.notes.push({ reachStart: found });
   await page.keyboard.press('Enter'); await sleep(300);
   out.afterStartFocus = await focusInfo();
@@ -100,21 +101,22 @@ async function keyboardOnly(browser) {
   out.charCardFocusable = await page.evaluate(() => [...document.querySelectorAll('.pick-card')].some((c) => c.tabIndex >= 0));
   await shot(page, path.join(dir, 'select-focus.png'));
   // 다음 버튼으로 이동
-  for (let i = 0; i < 6; i++) { if ((await focusInfo()).text === '다음') break; await page.keyboard.press('Tab'); }
+  for (let i = 0; i < 12; i++) { if ((await focusInfo()).text === '다음') break; await page.keyboard.press('Tab'); }
   await page.keyboard.press('Enter'); await sleep(300);
   out.orders.push(await order('map', 4));
   out.mapCardFocusable = await page.evaluate(() => [...document.querySelectorAll('.pick-card')].some((c) => c.tabIndex >= 0));
-  for (let i = 0; i < 6; i++) { if ((await focusInfo()).text === '입장') break; await page.keyboard.press('Tab'); }
+  for (let i = 0; i < 12; i++) { if (NAMES.enter.includes((await focusInfo()).text)) break; await page.keyboard.press('Tab'); }
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.__wbaEngine && window.__wbaEngine());
   out.inGameFocus = await focusInfo();
-  await page.waitForSelector('text=다시 하기', { timeout: 15000 });
+  await waitPlaying(page);
+  await page.waitForSelector('text=다시 하기', { timeout: 20000 });
   await sleep(400);
   out.resultFocusOnOpen = await focusInfo();
   out.orders.push(await order('result', 4));
   await shot(page, path.join(dir, 'result-focus.png'));
   // 결과 화면: Space 로 '다시 하기' 가 눌리는가 (엔진 keydown 이 Space preventDefault)
-  for (let i = 0; i < 6; i++) { if ((await focusInfo()).text === '다시 하기') break; await page.keyboard.press('Tab'); }
+  for (let i = 0; i < 12; i++) { if ((await focusInfo()).text === '다시 하기') break; await page.keyboard.press('Tab'); }
   const before = await page.evaluate(() => window.__wbaEngine());
   await page.keyboard.press('Space'); await sleep(500);
   out.spaceActivatesRestart = (await page.locator('text=다시 하기').count()) === 0;

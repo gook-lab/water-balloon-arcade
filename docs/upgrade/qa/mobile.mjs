@@ -3,7 +3,7 @@
 // 실행: node docs/upgrade/qa/mobile.mjs --url <URL> --label <이름> [--engine chromium|webkit]
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { devices, args, shot, collectErrors, ENGINE_PROBE, writeJson, sleep } from './lib.mjs';
+import { devices, args, shot, collectErrors, ENGINE_PROBE, findButton, waitPlaying, NAMES, writeJson, sleep } from './lib.mjs';
 
 const require = createRequire(import.meta.url);
 const pw = require(process.env.PLAYWRIGHT_PATH || '/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright');
@@ -42,7 +42,7 @@ for (const [name, dev] of cases) {
     scrollW: document.documentElement.scrollWidth, vw: innerWidth, scrollH: document.documentElement.scrollHeight, vh: innerHeight,
     pcOnlyNotice: /키보드|PC|데스크톱|터치/.test(document.body.innerText),
     minFontPx: Math.min(...[...document.querySelectorAll('body *')].filter((e) => e.childNodes.length && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize))),
-    titleRect: (() => { const t = [...document.querySelectorAll('div')].find((e) => e.textContent === '물풍선 대작전'); const r = t && t.getBoundingClientRect(); return r && { left: Math.round(r.left), right: Math.round(r.right) }; })()
+    titleRect: (() => { const t = [...document.querySelectorAll('h1, div')].find((e) => e.textContent === '물풍선 대작전'); const r = t && t.getBoundingClientRect(); return r && { left: Math.round(r.left), right: Math.round(r.right) }; })()
   }));
   await shot(page, path.join(dir, '1-title.png'));
   // 탭으로 진행. 탭이 다른 요소에 가로막히면(가로 넘침으로 레이아웃 뷰포트가 넓어진 경우 등) 기록하고 DOM click 으로 넘어간다
@@ -50,16 +50,21 @@ for (const [name, dev] of cases) {
   const tapOr = async (loc, label) => {
     try { await loc.tap({ timeout: 4000 }); } catch { row.tapBlocked.push(label); await loc.evaluate((el) => el.click()); }
   };
-  await tapOr(page.getByRole('button', { name: '게임 시작' }), '게임 시작');
+  // 버튼 이름은 새 이름 · 옛 이름 후보 중 있는 쪽(lib.mjs NAMES)
+  const startName = await findButton(page, NAMES.start);
+  row.touchNotice = await page.locator('.touch-notice').count() > 0;
+  await tapOr(page.getByRole('button', { name: startName, exact: true }), startName);
   await sleep(300);
   await tapOr(page.locator('.pick-card').nth(2), '캐릭터 카드'); // 카드 탭으로 고르기
   row.cardTapSelects = await page.evaluate(() => getComputedStyle(document.querySelectorAll('.pick-card')[2]).borderColor);
   await shot(page, path.join(dir, '2-select.png'));
-  await tapOr(page.getByRole('button', { name: '다음' }), '다음');
+  await tapOr(page.getByRole('button', { name: '다음', exact: true }), '다음');
   await sleep(300);
   await shot(page, path.join(dir, '3-map.png'));
-  await tapOr(page.getByRole('button', { name: '입장' }), '입장');
+  const enterName = await findButton(page, NAMES.enter);
+  await tapOr(page.getByRole('button', { name: enterName, exact: true }), enterName);
   await page.waitForFunction(() => window.__wbaEngine && window.__wbaEngine());
+  await waitPlaying(page); // r1 카운트다운 동안은 입력이 막히므로 판이 열린 뒤 터치를 시험한다
   await sleep(800);
   row.audio = await page.evaluate(() => window.__ac.map((c) => c.state));
   const canvas = page.locator('canvas').nth(1);
@@ -97,7 +102,7 @@ for (const [name, dev] of cases) {
   await shot(page, path.join(dir, '5-result.png'));
   row.errors = errs;
   R.devices.push(row);
-  console.log(`${name.padEnd(20)} title hOverflow=${row.title.scrollW > row.title.vw} titleRect=${JSON.stringify(row.title.titleRect)} canvas ${row.canvas.cssW}x${row.canvas.cssH} aspect ${row.canvas.aspect}/${row.canvas.expected} hudTop=${row.game.hudTop} touchMoved=${row.touchEffect.moved} touchBalloons=${row.touchEffect.balloonsPlaced} idle→${row.idleOutcome.kind} ${row.idleOutcome.sec}s audio=${row.audio} tapBlocked=[${row.tapBlocked}] layoutW=${row.title.vw} errors=${errs.length}`);
+  console.log(`${name.padEnd(20)} title hOverflow=${row.title.scrollW > row.title.vw} touchNotice=${row.touchNotice} titleRect=${JSON.stringify(row.title.titleRect)} canvas ${row.canvas.cssW}x${row.canvas.cssH} aspect ${row.canvas.aspect}/${row.canvas.expected} hudTop=${row.game.hudTop} touchMoved=${row.touchEffect.moved} touchBalloons=${row.touchEffect.balloonsPlaced} idle→${row.idleOutcome.kind} ${row.idleOutcome.sec}s audio=${row.audio} tapBlocked=[${row.tapBlocked}] layoutW=${row.title.vw} errors=${errs.length}`);
   await ctx.close();
 }
 await browser.close();

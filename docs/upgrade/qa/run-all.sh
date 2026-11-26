@@ -22,8 +22,9 @@ run() { # name timeout cmd...
 run smoke 300 node "$DIR/smoke.mjs" --url "$URL" --label "$LABEL"
 run play 420 node "$DIR/play.mjs" --url "$URL" --label "$LABEL"
 run a11y 200 node "$DIR/a11y.mjs" --url "$URL" --label "$LABEL"
-run perf 400 node "$DIR/perf.mjs" --url "$URL" --label "$LABEL" --only fps,load,restart
+run perf 560 node "$DIR/perf.mjs" --url "$URL" --label "$LABEL" --only fps,load,restart
 run mobile 560 node "$DIR/mobile.mjs" --url "$URL" --label "$LABEL"
+run features 300 node "$DIR/features.mjs" --url "$URL" --label "$LABEL" # r1 새 기능(옛 빌드는 n/a)
 if [ "${3:-}" = "--memory" ]; then
   run memory 590 node "$DIR/perf.mjs" --url "$URL" --label "$LABEL-memory" --only memory --minutes 5.5
 fi

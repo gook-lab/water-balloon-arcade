@@ -3,7 +3,7 @@
 // 실행: node docs/upgrade/qa/perf.mjs --url <URL> --label <이름> [--only fps,load,memory,restart] [--minutes 5.5] [--sec 8]
 // 주의: headless Chromium 값이다. 같은 기계의 다른 부하에 흔들리므로 비교는 같은 조건에서 두 번 이상.
 import path from 'node:path';
-import { chromium, args, collectErrors, ENGINE_PROBE, enterGame, writeJson, sleep } from './lib.mjs';
+import { chromium, args, collectErrors, ENGINE_PROBE, enterGame, optionButton, NAMES, writeJson, sleep } from './lib.mjs';
 
 const A = args({ url: 'http://127.0.0.1:5310', label: 'local', out: path.join(path.dirname(new URL(import.meta.url).pathname), 'out'), only: 'fps,load,memory,restart', sec: 8, minutes: 5.5 });
 const OUT = path.join(A.out, 'perf', A.label);
@@ -41,7 +41,8 @@ async function fpsCase(name, query, mapIdx) {
   const page = await ctx.newPage();
   await page.addInitScript(ENGINE_PROBE);
   await page.goto(BASE + '/' + query, { waitUntil: 'networkidle' });
-  if (/tile=/.test(name)) { const t = name.match(/tile=(\d+)/)[1]; await page.getByRole('button', { name: t + 'px' }).click(); }
+  // 타일 옵션: r1 은 「화질」 줄의 낮음(64) · 보통(128) · 높음(256), 옛 빌드는 「64px」
+  if (/tile=/.test(name)) { const t = name.match(/tile=(\d+)/)[1]; await (await optionButton(page, '화질', { 64: '낮음', 128: '보통', 256: '높음' }[t], t + 'px')).click(); }
   await enterGame(page, { mapIdx });
   await sleep(1500);
   const r = await page.evaluate(MEASURE, Number(A.sec));
@@ -147,11 +148,12 @@ if (ONLY.includes('restart')) {
   await enterGame(p2, { mapIdx: 0 });
   await sleep(300);
   const heap2 = async () => { await cdp2.send('HeapProfiler.collectGarbage'); const m = Object.fromEntries((await cdp2.send('Performance.getMetrics')).metrics.map((x) => [x.name, x.value])); return { heapMB: +(m.JSHeapUsedSize / 1048576).toFixed(2), listeners: m.JSEventListeners, nodes: m.Nodes }; };
-  const waitBtn = (t) => p2.waitForFunction((x) => [...document.querySelectorAll('button')].some((b) => b.textContent === x), t, { timeout: 15000, polling: 200 });
-  const press = (t) => p2.evaluate((x) => [...document.querySelectorAll('button')].find((b) => b.textContent === x).click(), t);
+  // 이름 후보(새 · 옛) 중 있는 버튼을 기다리고 누른다 — 맵 바꾸기/맵 변경, 시작하기/입장
+  const waitBtn = (t) => p2.waitForFunction((x) => [...document.querySelectorAll('button')].some((b) => x.includes(b.textContent)), [].concat(t), { timeout: 20000, polling: 200 });
+  const press = (t) => p2.evaluate((x) => [...document.querySelectorAll('button')].find((b) => x.includes(b.textContent)).click(), [].concat(t));
   const out = { restart: [], remount: [] };
   for (let i = 0; i <= 20; i++) { await waitBtn('다시 하기'); if (i % 5 === 0) out.restart.push({ round: i, ...(await heap2()) }); await press('다시 하기'); }
-  for (let i = 0; i <= 20; i++) { await waitBtn('맵 변경'); if (i % 5 === 0) out.remount.push({ round: i, ...(await heap2()) }); await press('맵 변경'); await waitBtn('입장'); await press('입장'); }
+  for (let i = 0; i <= 20; i++) { await waitBtn(NAMES.changeMap); if (i % 5 === 0) out.remount.push({ round: i, ...(await heap2()) }); await press(NAMES.changeMap); await waitBtn(NAMES.enter); await press(NAMES.enter); }
   console.log('restart', JSON.stringify(out.restart));
   console.log('remount(맵 변경→입장)', JSON.stringify(out.remount));
   R.restart = out;
