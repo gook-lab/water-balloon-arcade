@@ -30,6 +30,16 @@ export default function ResultOverlay({ result, report, botSkill, onRestart, onC
   useEffect(() => { firstRef.current?.focus(); }, []);
   useEffect(() => { if (copy && !copy.ok) copyRef.current?.select(); }, [copy]);
 
+  // aria-modal 이니 Tab 이 결과 화면 밖으로 빠지지 않게 처음 · 끝에서 돌린다(QA N1)
+  const onKeyDown = (e) => {
+    if (e.key !== 'Tab') return;
+    const items = [...e.currentTarget.querySelectorAll('button, textarea')];
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+
   const nb = report?.newBest || {};
   const summary = report
     ? [`${formatDuration(report.survivalMs)} 버텼어요`, report.trapped > 0 ? `봇 ${report.trapped}명을 가뒀어요` : null].filter(Boolean).join(' · ')
@@ -48,7 +58,7 @@ export default function ResultOverlay({ result, report, botSkill, onRestart, onC
   };
 
   return (
-    <div className="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" style={{ position: 'absolute', inset: 10, background: 'rgba(14,18,38,.9)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'safe center', gap: 12, padding: 12, overflowY: 'auto', animation: popIn(prefersReducedMotion()) }}>
+    <div className="result-overlay" role="dialog" onKeyDown={onKeyDown} aria-modal="true" aria-labelledby="result-title" style={{ position: 'absolute', inset: 10, background: 'rgba(14,18,38,.9)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'safe center', gap: 12, padding: 12, overflowY: 'auto', animation: popIn(prefersReducedMotion()) }}>
       <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
         <div id="result-title" style={{ fontFamily: 'var(--font-display)', fontSize: 62, color: c.color, textShadow: '0 5px 0 rgba(0,0,0,.35)' }}>{c.title}</div>
         <div style={{ fontSize: 15, color: '#cdd6f7' }}>{c.desc}</div>
