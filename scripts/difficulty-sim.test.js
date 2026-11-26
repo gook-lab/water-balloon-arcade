@@ -17,7 +17,7 @@ const STEP_MS = 16, LIMIT_MS = 120_000;
 
 function runMatch(skill, mapIdx) {
   clock = 0;
-  const engine = new GameEngine({ canvas: null, charIdx: 0, mapIdx, tileSize: 100, matchSeconds: 999, botCount: 3, botSkill: skill });
+  const engine = new GameEngine({ canvas: null, charIdx: 0, mapIdx, tileSize: 100, matchSeconds: 999, botCount: 3, botSkill: skill, countdown: false });
   engine.start();
   clearInterval(engine.timer);
   while (clock < LIMIT_MS && !engine.finished && engine.g.ents[0].state === 'alive') {

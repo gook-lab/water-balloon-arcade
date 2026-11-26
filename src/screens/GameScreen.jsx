@@ -1,15 +1,18 @@
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import HudBar from '../components/HudBar.jsx';
 import ResultOverlay from '../components/ResultOverlay.jsx';
+import PauseOverlay from '../components/PauseOverlay.jsx';
+import CountdownOverlay from '../components/CountdownOverlay.jsx';
 import { useGame } from '../hooks/useGame.js';
 
-export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onChangeChar }) {
-  const { canvasRef, hud, result, restart } = useGame({ charIdx, mapIdx, settings });
+export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onChangeChar, onExit }) {
+  const { canvasRef, hud, result, report, phase, pause, resume, restart } = useGame({ charIdx, mapIdx, settings });
+  const paused = phase?.phase === 'paused';
 
   return (
     <div className="screen-center">
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: '100%', maxWidth: 1500 }}>
-        <HudBar hud={hud} charIdx={charIdx} />
+        <HudBar hud={hud} charIdx={charIdx} onPause={pause} paused={paused || !!result} />
 
         <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
           <div style={{ position: 'relative', padding: 10, borderRadius: 6, border: '3px solid var(--outline)', background: 'var(--frame-2)', boxShadow: '0 8px 0 rgba(0,0,0,.4), inset 0 3px 0 var(--frame-1)' }}>
@@ -17,8 +20,10 @@ export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onC
               ref={canvasRef}
               style={{ display: 'block', height: '72vh', width: 'auto', maxWidth: '92vw', aspectRatio: '15 / 13', background: '#0e1226' }}
             />
+            <CountdownOverlay phase={phase} />
+            {paused && <PauseOverlay onResume={resume} onRestart={restart} onExit={onExit || onChangeMap} />}
             {result && (
-              <ResultOverlay result={result} botSkill={settings.botSkill} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
+              <ResultOverlay result={result} report={report} botSkill={settings.botSkill} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
             )}
           </div>
         </div>

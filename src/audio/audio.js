@@ -1,13 +1,25 @@
-// Web Audio 칩튠 신디사이저 — 외부 에셋 없음, 전부 코드 생성.
+// Web Audio 소리 — 효과음은 public/sfx/<이름>.mp3 녹음본, BGM 은 코드로 합성한 칩튠.
+// 녹음본은 잠금 해제 뒤 미리 불러 AudioBufferSourceNode 로 틀고, 아직 못 불러왔거나 실패한 소리는
+// 아래 합성음(SFX)으로 대신 낸다 — 오프라인 · 느린 망에서도 소리가 난다.
 // game/ 모듈과 분리: 엔진은 onSound(name) 콜백으로만 연결된다 (엔진 순수성 유지).
 // 브라우저 autoplay 정책: 첫 사용자 제스처(installUnlock)에서 AudioContext 생성/resume.
 const LS_KEY = 'wba-audio';
+
+// 녹음본이 있는 효과음 12종(tools/sfx-pick.mjs 결과, 출처 docs/upgrade/sfx/)
+export const SAMPLE_NAMES = ['ui', 'place', 'pin', 'burst', 'crate', 'itemGood', 'itemBad', 'trapped', 'die', 'win', 'lose', 'draw'];
+// 녹음본이 따로 없는 소리 → 다른 녹음본을 높낮이만 바꿔 쓴다(카운트다운)
+const VARIANTS = { count: { sample: 'ui', rate: 0.8 }, go: { sample: 'ui', rate: 1.5 } };
+// 녹음본은 최고점 −1dB 로 맞춰져 있어 합성음(0.2~0.5)보다 크다 — 버스에 넣기 전에 줄인다
+const SAMPLE_GAIN = 0.6;
+const buffers = new Map();
+let preloading = null;
 
 let ctx = null;
 let master = null, sfxBus = null, bgmBus = null;
 let unlocked = false;
 let pendingBgm = null;
 let bgmState = null;
+let bgmWanted = null; // 음소거 동안 멈춰 둔 BGM 이름 — 풀면 다시 튼다(QA S14)
 let noiseBuf = null;
 const lastPlay = new Map();
 
@@ -54,11 +66,65 @@ export function installUnlock() {
     const c = ensureCtx();
     if (c && c.state === 'suspended') c.resume();
     if (pendingBgm) { const n = pendingBgm; pendingBgm = null; startBgm(n); }
+    preloadSfx();
     window.removeEventListener('pointerdown', unlock);
     window.removeEventListener('keydown', unlock);
   };
   window.addEventListener('pointerdown', unlock);
   window.addEventListener('keydown', unlock);
+  // 탭이 숨으면 소리를 통째로 쉰다 — 판은 엔진이 일시정지한다
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (!ctx || !unlocked) return;
+      if (document.visibilityState === 'hidden') { if (ctx.state === 'running') ctx.suspend(); }
+      else if (ctx.state === 'suspended') ctx.resume();
+    });
+  }
+}
+
+/* ---------------- 녹음본 미리 불러오기 ---------------- */
+function sfxUrl(name) {
+  const base = import.meta.env?.BASE_URL || '/';
+  return `${base}sfx/${name}.mp3`;
+}
+
+async function loadOne(name) {
+  try {
+    const res = await fetch(sfxUrl(name));
+    if (!res.ok) return;
+    const data = await res.arrayBuffer();
+    // 옛 Safari 는 decodeAudioData 가 콜백형 — 둘 다 받는다
+    const buf = await new Promise((resolve, reject) => {
+      const p = ctx.decodeAudioData(data, resolve, reject);
+      if (p && typeof p.then === 'function') p.then(resolve, reject);
+    });
+    if (buf) buffers.set(name, buf);
+  } catch {
+    /* 망 오류 · 해독 실패 — 이 소리는 합성음으로 남는다 */
+  }
+}
+
+/** 효과음 녹음본을 불러온다(잠금 해제 때 1회). 끝나면 풀리는 Promise — 실패해도 reject 하지 않는다. */
+export function preloadSfx() {
+  if (preloading) return preloading;
+  if (!ensureCtx() || typeof fetch !== 'function') return Promise.resolve();
+  preloading = Promise.all(SAMPLE_NAMES.map(loadOne)).then(() => undefined);
+  return preloading;
+}
+
+/** 불러온 녹음본 이름 목록 — 시험 · 진단용 */
+export function loadedSfx() {
+  return [...buffers.keys()];
+}
+
+function playBuffer(buf, rate = 1) {
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  if (rate !== 1) src.playbackRate.value = rate;
+  const g = ctx.createGain();
+  g.gain.value = SAMPLE_GAIN;
+  src.connect(g); g.connect(sfxBus);
+  src.start();
 }
 
 /* ---------------- 신스 프리미티브 ---------------- */
@@ -99,7 +165,7 @@ function noise({ dur = 0.2, vol = 0.4, delay = 0, from = 3000, to = 400, bus }) 
   src.start(t0); src.stop(t0 + dur + 0.02);
 }
 
-/* ---------------- SFX 13종 ---------------- */
+/* ---------------- 합성 효과음 — 녹음본이 없을 때의 대체 + 카운트다운 ---------------- */
 const SFX = {
   ui: () => tone({ from: 660, to: 880, dur: 0.06, vol: 0.22 }),
   place: () => tone({ from: 320, to: 170, dur: 0.1, vol: 0.35 }),
@@ -118,7 +184,10 @@ const SFX = {
   },
   win: () => [523, 659, 784, 1047].forEach((f, i) => tone({ from: f, dur: i === 3 ? 0.35 : 0.12, vol: 0.34, delay: i * 0.12 })),
   lose: () => [392, 330, 262].forEach((f, i) => tone({ from: f, dur: i === 2 ? 0.4 : 0.16, vol: 0.34, delay: i * 0.16 })),
-  draw: () => [440, 440].forEach((f, i) => tone({ from: f, dur: 0.15, vol: 0.28, delay: i * 0.18 }))
+  draw: () => [440, 440].forEach((f, i) => tone({ from: f, dur: 0.15, vol: 0.28, delay: i * 0.18 })),
+  // 카운트다운 — 3 · 2 · 1 은 낮게, 「시작!」은 높게
+  count: () => tone({ from: 520, dur: 0.09, vol: 0.24 }),
+  go: () => tone({ from: 880, to: 1320, dur: 0.16, vol: 0.28 })
 };
 // 연쇄 폭발 등 같은 프레임 다발음 스로틀 (ms)
 const THROTTLE = { burst: 60, crate: 50, trapped: 120, place: 40 };
@@ -132,6 +201,11 @@ export function playSfx(name) {
     const now = performance.now();
     if (now - (lastPlay.get(name) || 0) < th) return;
     lastPlay.set(name, now);
+  }
+  const v = VARIANTS[name];
+  const buf = buffers.get(v ? v.sample : name);
+  if (buf) {
+    try { playBuffer(buf, v ? v.rate : 1); return; } catch { /* 재생 실패 — 합성음으로 */ }
   }
   fn();
 }
@@ -157,6 +231,8 @@ const TRACKS = {
 
 export function startBgm(name) {
   if (!unlocked) { pendingBgm = name; return; }
+  bgmWanted = name;
+  if (settings.muted) { stopBgm(); return; } // 음소거 동안은 스케줄러를 돌리지 않는다(QA S14)
   if (bgmState && bgmState.name === name) return;
   if (!ensureCtx()) return;
   stopBgm();
@@ -197,6 +273,14 @@ export function setMuted(m) {
   settings.muted = !!m;
   applyVolume();
   save();
+  // 음소거면 BGM 스케줄러를 멈추고, 풀면 마지막으로 원한 곡을 다시 튼다(QA S14)
+  if (settings.muted) stopBgm();
+  else if (bgmWanted && unlocked) startBgm(bgmWanted);
+}
+
+/** BGM 스케줄러가 도는 중인지 — 시험 · 진단용 */
+export function isBgmRunning() {
+  return !!bgmState;
 }
 export function setVolume(v) {
   settings.volume = clamp01(v);
