@@ -297,24 +297,42 @@ button:focus-visible,
   .game-column > .pixel-panel div { white-space: nowrap; }
 }
 
-/* 결과 화면 — 좁은 판에서도 버튼 글자가 한 줄이고 내용이 판 안에 들어온다(QA S3).
-   ResultOverlay 인라인 크기보다 이긴다. .result-* 는 결과 화면이 클래스를 달면 그대로 쓰는 이름 */
+/* 판 위 화면(결과 · 일시정지 · 카운트다운) — 좁은 판에서도 버튼 글자가 한 줄이고 내용이 판 안에 들어온다(QA S3).
+   클래스는 엔진 담당 컴포넌트가 단 이름. 인라인 크기보다 이기도록 !important */
 .game-frame button { white-space: nowrap; word-break: keep-all; }
+.result-overlay,
+.pause-overlay { justify-content: safe center !important; overflow-y: auto; overscroll-behavior: contain; }
 @media (max-width: 700px), (max-height: 620px) {
-  .game-frame > div,
-  .result-overlay { justify-content: safe center !important; overflow-y: auto; gap: 8px !important; padding: 8px; text-align: center; }
-  .game-frame > div > div:first-child,
-  .result-title { font-size: 34px !important; }
-  .game-frame > div > div:not(:first-child),
-  .result-desc { font-size: 13px !important; margin-top: 0 !important; }
-  .game-frame div:has(> button + button),
-  .result-actions { flex-wrap: wrap; justify-content: center; gap: 8px !important; }
-  .game-frame button { font-size: 15px !important; padding: 8px 14px !important; box-shadow: none !important; }
+  .result-overlay,
+  .pause-overlay { gap: 6px !important; padding: 8px !important; text-align: center; }
+  #result-title,
+  #pause-title { font-size: 34px !important; }
+  .result-overlay [role='status'] > div:not(#result-title) { font-size: 13px !important; }
+  .result-stats { gap: 4px !important; }
+  .result-stats > div { min-width: 0 !important; padding: 3px 8px !important; gap: 0 !important; }
+  .result-stats > div > div { font-size: 11px !important; }
+  .result-stats > div > div:first-child { font-size: 17px !important; }
+  .result-actions,
+  .pause-actions { gap: 6px !important; margin-top: 0 !important; }
+  .game-frame button:not(.hud-pause) { font-size: 14px !important; padding: 7px 12px !important; box-shadow: none !important; }
+  .countdown-overlay > div { font-size: 64px !important; padding: 8px 22px !important; -webkit-text-stroke-width: 2px !important; }
+  /* 옛 결과 화면(클래스 없음) — 엔진 가지를 합치기 전 이 가지에서만 쓰인다 */
+  .game-frame > div:not([class]) { justify-content: safe center !important; overflow-y: auto; gap: 6px !important; }
+  .game-frame > div:not([class]) > div:first-child { font-size: 34px !important; }
+  .game-frame div:not([class]):has(> button + button) { flex-wrap: wrap; justify-content: center; gap: 6px !important; }
 }
 @media (max-height: 450px) {
-  .game-frame > div > div:first-child,
-  .result-title { font-size: 26px !important; }
-  .game-frame button { font-size: 13px !important; padding: 6px 10px !important; }
+  #result-title,
+  #pause-title,
+  .game-frame > div:not([class]) > div:first-child { font-size: 24px !important; }
+  .result-stats { flex-wrap: nowrap !important; }
+  .result-stats > div { flex: 1 1 0; padding: 2px 4px !important; }
+  .result-stats > div > div { font-size: 10px !important; }
+  .result-stats > div > div:first-child { font-size: 14px !important; }
+  .result-final,
+  .result-skill { display: none !important; } /* 낮은 판에서는 끝 스탯 · 난이도 줄을 접는다(엔진 쪽 클래스 요청) */
+  .game-frame button:not(.hud-pause) { font-size: 13px !important; padding: 5px 9px !important; }
+  .countdown-overlay > div { font-size: 48px !important; }
 }
 /* 결과 · 일시정지처럼 판 위에 버튼이 뜨면 첫 판 말풍선은 숨긴다 */
 main:has(.game-frame button) .first-tip { display: none; }

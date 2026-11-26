@@ -9,9 +9,16 @@ import { setRangeVisible } from './game/renderer.js';
 
 const DEFAULT_SETTINGS = { tileSize: 128, matchSeconds: 180, botCount: 3, botSkill: '보통', showRange: true };
 
-// 타이틀 기록 한 줄 자리 — 엔진 담당의 src/records.js 요약 함수가 들어오면 여기서 연결한다(없으면 줄을 숨김)
-function titleRecordLine() {
-  return null;
+// 타이틀 기록 한 줄 — 엔진 담당의 src/records.js(summaryLine · loadRecords). 그 파일이 아직 없는 가지에서도
+// 빌드가 깨지지 않게 glob 으로 읽는다(없으면 빈 객체 → 줄을 숨김). 두 가지를 합친 뒤에는 정적 import 로 바꿔도 된다.
+const records = Object.values(import.meta.glob('./records.js', { eager: true }))[0];
+function titleRecordLine(botSkill) {
+  if (!records || !records.summaryLine || !records.loadRecords) return null;
+  try {
+    return records.summaryLine(records.loadRecords(), botSkill);
+  } catch {
+    return null;
+  }
 }
 
 // 개발·QA용 URL 파라미터: ?t=초 (제한 시간), ?bots=1..3
@@ -100,6 +107,7 @@ export default function App() {
           settings={settings}
           onChangeMap={() => setScreen('map')}
           onChangeChar={() => setScreen('select')}
+          onExit={() => setScreen('title')}
         />
         <FirstTip />
       </>
