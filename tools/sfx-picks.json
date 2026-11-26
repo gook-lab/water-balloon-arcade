@@ -1,0 +1,4 @@
+{
+  "ui": 1, "place": 1, "pin": 2, "burst": 1, "crate": 1, "itemGood": 1,
+  "itemBad": 1, "trapped": 1, "die": 1, "win": 1, "lose": 1, "draw": 1
+}

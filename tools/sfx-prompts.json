@@ -1,0 +1,66 @@
+{
+  "model_id": "eleven_text_to_sound_v2",
+  "style": "cute cartoon arcade game sound effect, bright and playful, clean, no music, no voice",
+  "sounds": [
+    {
+      "key": "ui",
+      "seconds": 0.5,
+      "prompt": "soft bubbly menu click, a tiny water droplet blip"
+    },
+    {
+      "key": "place",
+      "seconds": 0.7,
+      "prompt": "a clear, punchy rubbery plop of a water balloon dropped on the ground, loud and close, short wobble after the impact"
+    },
+    {
+      "key": "pin",
+      "seconds": 0.7,
+      "prompt": "a loud close-up balloon pop from a needle prick, crisp snap followed by a tiny water spritz"
+    },
+    {
+      "key": "burst",
+      "seconds": 1.2,
+      "prompt": "a water balloon bursting into a big splash, wet pop followed by water spraying outward"
+    },
+    {
+      "key": "crate",
+      "seconds": 0.6,
+      "prompt": "a small wooden crate cracking apart, light cartoon wood break"
+    },
+    {
+      "key": "itemGood",
+      "seconds": 0.8,
+      "prompt": "cheerful sparkly power-up pickup chime, rising and bright"
+    },
+    {
+      "key": "itemBad",
+      "seconds": 0.9,
+      "prompt": "comedic slow-down debuff, a descending droopy wobble, funny not scary"
+    },
+    {
+      "key": "trapped",
+      "seconds": 1.0,
+      "prompt": "a character getting trapped inside a wobbling water bubble, gloopy bloop and wobble"
+    },
+    {
+      "key": "die",
+      "seconds": 1.2,
+      "prompt": "a trapped water bubble popping, comedic defeat, small splash and a falling whistle"
+    },
+    {
+      "key": "win",
+      "seconds": 2.0,
+      "prompt": "short happy victory jingle for a kids arcade game, bouncy and celebratory, ends cleanly"
+    },
+    {
+      "key": "lose",
+      "seconds": 2.0,
+      "prompt": "short sad but cute game-over jingle, gentle descending notes, ends cleanly"
+    },
+    {
+      "key": "draw",
+      "seconds": 1.2,
+      "prompt": "neutral time-up whistle, two even notes, referee style but cute"
+    }
+  ]
+}

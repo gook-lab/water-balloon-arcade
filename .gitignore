@@ -3,3 +3,6 @@ dist/
 .DS_Store
 .gstack/
 *.log
+.scratch/
+.worktrees/
+docs/upgrade/qa/out/

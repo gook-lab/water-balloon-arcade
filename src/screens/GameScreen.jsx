@@ -1,32 +1,36 @@
+import { useState } from 'react';
 import PixelCanvas from '../components/PixelCanvas.jsx';
 import HudBar from '../components/HudBar.jsx';
 import ResultOverlay from '../components/ResultOverlay.jsx';
+import PauseOverlay from '../components/PauseOverlay.jsx';
+import CountdownOverlay from '../components/CountdownOverlay.jsx';
 import { useGame } from '../hooks/useGame.js';
+import { isTouchFirst } from './screenUtils.js';
 
-export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onChangeChar }) {
-  const { canvasRef, hud, result, restart } = useGame({ charIdx, mapIdx, settings });
+export default function GameScreen({ charIdx, mapIdx, settings, onChangeMap, onChangeChar, onExit }) {
+  const { canvasRef, hud, result, report, phase, pause, resume, restart } = useGame({ charIdx, mapIdx, settings });
+  const paused = phase?.phase === 'paused';
+  const [touchFirst] = useState(() => isTouchFirst(window));
 
   return (
-    <div className="screen-center">
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: '100%', maxWidth: 1500 }}>
-        <HudBar hud={hud} charIdx={charIdx} />
+    <div className="screen-center game-screen">
+      <div className="game-column">
+        <HudBar hud={hud} charIdx={charIdx} onPause={pause} paused={paused || !!result} />
 
         <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ position: 'relative', padding: 10, borderRadius: 6, border: '3px solid var(--outline)', background: 'var(--frame-2)', boxShadow: '0 8px 0 rgba(0,0,0,.4), inset 0 3px 0 var(--frame-1)' }}>
-            <PixelCanvas
-              ref={canvasRef}
-              style={{ display: 'block', height: '72vh', width: 'auto', maxWidth: '92vw', aspectRatio: '15 / 13', background: '#0e1226' }}
-            />
+          <div className="game-frame">
+            <PixelCanvas ref={canvasRef} className="game-canvas" role="img" aria-label="게임 판 — 방향키로 움직이고 스페이스로 물풍선을 놓아요" />
+            <CountdownOverlay phase={phase} />
+            {paused && <PauseOverlay onResume={resume} onRestart={restart} onExit={onExit || onChangeMap} />}
             {result && (
-              <ResultOverlay result={result} botSkill={settings.botSkill} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
+              <ResultOverlay result={result} report={report} botSkill={settings.botSkill} onRestart={restart} onChangeMap={onChangeMap} onChangeChar={onChangeChar} />
             )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center', fontSize: 12, color: '#8e9bd0', whiteSpace: 'nowrap' }}>
-          <div>방향키 이동 · 스페이스 물풍선 · X 바늘</div>
-          <div>타일 {settings.tileSize}px · 15 × 13</div>
-        </div>
+        <p className="game-help">
+          {touchFirst ? '키보드가 있는 컴퓨터에서 해요 · ' : ''}방향키 이동 · 스페이스 물풍선 · X 내 풍선 터뜨리기 · Esc 일시정지
+        </p>
       </div>
     </div>
   );

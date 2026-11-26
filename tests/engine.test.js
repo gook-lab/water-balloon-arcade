@@ -119,7 +119,7 @@ describe('승패 판정 (step)', () => {
     const g = engine.g;
     g.ents.push(makeEnt(g, 0, 0, { state: 'dead' }), makeEnt(g, 14, 0, { id: 1, isBot: true }));
     engine.step(g);
-    expect(onFinish).toHaveBeenCalledWith('lose');
+    expect(onFinish).toHaveBeenCalledWith('lose', expect.objectContaining({ survivalMs: expect.any(Number) }));
   });
 
   it('봇 전멸 → win', () => {
@@ -127,7 +127,7 @@ describe('승패 판정 (step)', () => {
     const g = engine.g;
     g.ents.push(makeEnt(g, 0, 0), makeEnt(g, 14, 0, { id: 1, isBot: true, state: 'dead' }));
     engine.step(g);
-    expect(onFinish).toHaveBeenCalledWith('win');
+    expect(onFinish).toHaveBeenCalledWith('win', expect.objectContaining({ survivalMs: expect.any(Number) }));
   });
 
   it('시간 초과(양측 생존) → draw', () => {
@@ -136,7 +136,7 @@ describe('승패 판정 (step)', () => {
     const g = engine.g;
     g.ents.push(makeEnt(g, 0, 0), makeEnt(g, 14, 0, { id: 1, isBot: true, nextThink: Infinity }));
     engine.step(g);
-    expect(onFinish).toHaveBeenCalledWith('draw');
+    expect(onFinish).toHaveBeenCalledWith('draw', expect.objectContaining({ survivalMs: expect.any(Number) }));
   });
 
   it('finish 는 한 번만 발화한다', () => {

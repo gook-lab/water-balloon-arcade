@@ -1,0 +1,351 @@
+[
+  {
+    "size": "desktop",
+    "title": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null,
+      "touchNotice": 0,
+      "legendItems": 7,
+      "touchPop": 1
+    },
+    "select": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "map": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "game": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 748,
+        "h": 648,
+        "ratio": 1.154,
+        "top": 152,
+        "bottom": 800
+      },
+      "hudTop": 63,
+      "tip": 1
+    },
+    "result": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 748,
+        "h": 648,
+        "ratio": 1.154,
+        "top": 152,
+        "bottom": 800
+      },
+      "hudTop": 63,
+      "buttons": [
+        {
+          "text": "다시 하기",
+          "oneLine": true,
+          "h": 45
+        },
+        {
+          "text": "맵 변경",
+          "oneLine": true,
+          "h": 45
+        },
+        {
+          "text": "캐릭터",
+          "oneLine": true,
+          "h": 45
+        }
+      ]
+    },
+    "errors": []
+  },
+  {
+    "size": "landscape",
+    "title": {
+      "scrollW": 844,
+      "clientW": 844,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null,
+      "touchNotice": 1,
+      "legendItems": 7,
+      "touchPop": 1
+    },
+    "select": {
+      "scrollW": 844,
+      "clientW": 844,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "map": {
+      "scrollW": 844,
+      "clientW": 844,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "game": {
+      "scrollW": 844,
+      "clientW": 844,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 277,
+        "h": 240,
+        "ratio": 1.154,
+        "top": 101,
+        "bottom": 341
+      },
+      "hudTop": 18,
+      "tip": 1
+    },
+    "result": {
+      "scrollW": 844,
+      "clientW": 844,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 277,
+        "h": 240,
+        "ratio": 1.154,
+        "top": 101,
+        "bottom": 341
+      },
+      "hudTop": 18,
+      "buttons": [
+        {
+          "text": "다시 하기",
+          "oneLine": true,
+          "h": 23
+        },
+        {
+          "text": "맵 변경",
+          "oneLine": true,
+          "h": 23
+        },
+        {
+          "text": "캐릭터",
+          "oneLine": true,
+          "h": 23
+        }
+      ]
+    },
+    "errors": []
+  },
+  {
+    "size": "portrait",
+    "title": {
+      "scrollW": 390,
+      "clientW": 390,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null,
+      "touchNotice": 1,
+      "legendItems": 7,
+      "touchPop": 1
+    },
+    "select": {
+      "scrollW": 390,
+      "clientW": 390,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "map": {
+      "scrollW": 390,
+      "clientW": 390,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "game": {
+      "scrollW": 390,
+      "clientW": 390,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 332,
+        "h": 288,
+        "ratio": 1.154,
+        "top": 318,
+        "bottom": 606
+      },
+      "hudTop": 189,
+      "tip": 1
+    },
+    "result": {
+      "scrollW": 390,
+      "clientW": 390,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 332,
+        "h": 288,
+        "ratio": 1.154,
+        "top": 318,
+        "bottom": 606
+      },
+      "hudTop": 189,
+      "buttons": [
+        {
+          "text": "다시 하기",
+          "oneLine": true,
+          "h": 29
+        },
+        {
+          "text": "맵 변경",
+          "oneLine": true,
+          "h": 29
+        },
+        {
+          "text": "캐릭터",
+          "oneLine": true,
+          "h": 29
+        }
+      ]
+    },
+    "errors": []
+  },
+  {
+    "size": "narrow-desktop",
+    "title": {
+      "scrollW": 700,
+      "clientW": 700,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null,
+      "touchNotice": 0,
+      "legendItems": 7,
+      "touchPop": 1
+    },
+    "select": {
+      "scrollW": 700,
+      "clientW": 700,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "map": {
+      "scrollW": 700,
+      "clientW": 700,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": null,
+      "hudTop": null
+    },
+    "game": {
+      "scrollW": 700,
+      "clientW": 700,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 630,
+        "h": 546,
+        "ratio": 1.154,
+        "top": 203,
+        "bottom": 749
+      },
+      "hudTop": 114,
+      "tip": 1
+    },
+    "result": {
+      "scrollW": 700,
+      "clientW": 700,
+      "overflowX": 0,
+      "scrollY": 0,
+      "board": {
+        "w": 630,
+        "h": 546,
+        "ratio": 1.154,
+        "top": 203,
+        "bottom": 749
+      },
+      "hudTop": 114,
+      "buttons": [
+        {
+          "text": "다시 하기",
+          "oneLine": true,
+          "h": 29
+        },
+        {
+          "text": "맵 변경",
+          "oneLine": true,
+          "h": 29
+        },
+        {
+          "text": "캐릭터",
+          "oneLine": true,
+          "h": 29
+        }
+      ]
+    },
+    "errors": []
+  },
+  {
+    "keyboard": {
+      "first": {
+        "role": "radio",
+        "label": "코코 — 골고루 무난해요. 풍선 1, 물줄기 1, 속도 3"
+      },
+      "afterArrows": [
+        "false",
+        "false",
+        "true",
+        "false",
+        "false",
+        "false"
+      ],
+      "focusedAfter": "삐용 — 가장 빨라요. 풍선 1, 물줄기 1, 속도 5",
+      "afterEnd": 5,
+      "mapChecked": 1,
+      "mapH1": "어디서 할까요?",
+      "struct": {
+        "main": 1,
+        "h1": 1
+      },
+      "game": {
+        "main": 1,
+        "h1": "물풍선 대작전 — 게임 중",
+        "canvasLabel": "게임 판 — 방향키로 움직이고 스페이스로 물풍선을 놓아요"
+      }
+    }
+  },
+  {
+    "reducedMotion": {
+      "titleAnimations": 0,
+      "selectAnimations": 0
+    }
+  },
+  {
+    "firstTip": {
+      "firstGame": 1,
+      "secondGame": 0
+    }
+  }
+]

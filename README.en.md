@@ -2,11 +2,16 @@
 
 [한국어](README.md) | **English**
 
-A Crazy Arcade-style 2D water balloon game, ported from a working HTML prototype
-(`../크레이지아케이드 (1)/물풍선 대작전.dc.html`) to **React 18 + Vite**.
+A 2D pixel arcade game: drop water balloons on a grid and trap your rivals in the splash.
+Pick one of six characters and seven maps (plus random), then take on three bots in a three-minute round.
+Be the last one dry to win.
 
-Game rules, tuning values and pixel sprite data are copied from the prototype as-is
-and are not changed arbitrarily. (Full brief: [PROMPT.md](PROMPT.md))
+▶ Play now: https://water-balloon-arcade-ebon.vercel.app/ (desktop with a keyboard; the in-game text is Korean)
+
+Ported from a hand-built HTML prototype to **React 18 + Vite**. The game engine is plain JS kept apart from React,
+graphics are Canvas 2D pixel sprites, and the chiptune music is synthesized in code with Web Audio.
+Game rules, tuning values and sprite data are carried over from the prototype as-is and are not changed arbitrarily.
+(Full brief: [PROMPT.md](PROMPT.md))
 
 ## Running
 
@@ -26,6 +31,7 @@ npm run lint     # ESLint
 | Arrow keys / WASD | Move |
 | Space | Place a water balloon |
 | X | Needle (pop your own balloon immediately) |
+| Esc / P | Pause / resume |
 
 ## Features
 
@@ -34,6 +40,12 @@ npm run lint     # ESLint
 Pick the bot difficulty (Easy / Normal / Hard) on the title screen; the choice is remembered.
 Easy bots sometimes miss danger, Hard bots think more often and chase a nearby player before breaking blocks.
 The result screen shows the difficulty of the round. Parameters and headless measurements are in [GAME-DESIGN.md](docs/GAME-DESIGN.md) (Korean).
+
+### Sound — recorded effects, synthesized music
+
+Sound effects are recorded files in `public/sfx/*.mp3` (generated with ElevenLabs). Until a file has loaded,
+or if it fails to load, the game plays a synthesized sound in its place. The background music is chiptune
+synthesized in code with Web Audio. Sound on/off and volume chosen on the title screen are remembered.
 
 ## Module Structure
 

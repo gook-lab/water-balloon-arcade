@@ -3,9 +3,40 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>물풍선 대작전</title>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <title>물풍선 대작전 — 브라우저 픽셀 물풍선 아케이드</title>
+    <meta name="description" content="격자 맵에 물풍선을 놓아 물줄기로 상대를 가두는 픽셀 아케이드예요. 캐릭터 여섯 · 맵 일곱 중에 골라 봇 셋과 3분 동안 겨뤄요." />
+    <meta name="theme-color" content="#0e1226" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content="물풍선 대작전" />
+    <meta property="og:title" content="물풍선 대작전" />
+    <meta property="og:description" content="물줄기로 가두고, 마지막까지 살아남아요. 설치 없이 브라우저에서 바로 한 판 해요." />
+    <meta property="og:url" content="https://water-balloon-arcade-ebon.vercel.app/" />
+    <meta property="og:image" content="https://water-balloon-arcade-ebon.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="초록 들판 맵에서 십자 물줄기에 갇힌 펭구 옆으로 코코와 친구들이 물풍선을 놓는 장면" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="물풍선 대작전" />
+    <meta name="twitter:description" content="물줄기로 가두고, 마지막까지 살아남아요. 설치 없이 브라우저에서 바로 한 판 해요." />
+    <meta name="twitter:image" content="https://water-balloon-arcade-ebon.vercel.app/og.png" />
+
+    <!-- 방문 집계: Vercel Web Analytics 페이지 조회만(의존성 · 커스텀 이벤트 없음).
+         로컬 · 미리보기 서버에는 /_vercel 경로가 없어, 그쪽에서는 스크립트를 붙이지 않는다 -->
+    <script>
+      if (!/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)) {
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+        var s = document.createElement('script');
+        s.defer = true;
+        s.src = '/_vercel/insights/script.js';
+        document.head.appendChild(s);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
