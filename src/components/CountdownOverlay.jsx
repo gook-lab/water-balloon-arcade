@@ -15,6 +15,7 @@ export default function CountdownOverlay({ phase }) {
         aria-live="assertive"
         style={{
           fontFamily: 'var(--font-display)', fontSize: counting ? 140 : 96, lineHeight: 1,
+          padding: counting ? '18px 52px' : '18px 40px', borderRadius: 12, background: 'rgba(14,18,38,.55)',
           color: counting ? '#fff' : '#ffd23f', textShadow: '0 6px 0 rgba(0,0,0,.45), 0 0 0 #000',
           WebkitTextStroke: '3px #16203c', animation: popIn(reduced, '.25s')
         }}
