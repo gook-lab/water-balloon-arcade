@@ -101,7 +101,9 @@ export class GameEngine {
     this.timer = setInterval(() => {
       if (performance.now() - this.lastTick > 150) this.tick();
     }, 80);
-    this.enterCountdown();
+    // countdown: false — 헤드리스 시뮬처럼 바로 판을 여는 경우(기본은 카운트다운)
+    if (this.opts.countdown !== false) this.enterCountdown();
+    else this.emitPhase();
     this.loop();
     this.pushHud();
   }
