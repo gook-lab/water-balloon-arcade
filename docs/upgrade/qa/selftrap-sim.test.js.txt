@@ -1,0 +1,47 @@
+// QA 일회성 측정: 봇이 갇힐 때 그 물이 누구 풍선에서 왔나 (자기 풍선 = 자멸). 플레이어는 무적 · 정지.
+import { describe, it, vi } from 'vitest';
+vi.mock('../src/game/renderer.js', () => ({ draw: vi.fn(), drawStatic: vi.fn(), drawParts: vi.fn(), drawMapPreview: vi.fn() }));
+let clock = 0;
+globalThis.window = globalThis.window || { addEventListener() {}, removeEventListener() {} };
+globalThis.requestAnimationFrame = () => 0; globalThis.cancelAnimationFrame = () => {};
+vi.spyOn(performance, 'now').mockImplementation(() => clock);
+const { GameEngine } = await import('../src/game/engine.js');
+const { blastTiles } = await import('../src/game/rules.js');
+function run(skill, mapIdx, ms) {
+  clock = 0;
+  const e = new GameEngine({ canvas: null, charIdx: 0, mapIdx, tileSize: 100, matchSeconds: 9999, botCount: 3, botSkill: skill });
+  e.start(); clearInterval(e.timer);
+  const owner = new Map();
+  const ob = e.burst.bind(e);
+  e.burst = (b) => { if (e.g.balloons.includes(b)) blastTiles(e.g, b).forEach((k) => owner.set(k, b.owner)); ob(b); };
+  const res = { self: 0, other: 0, player: 0 };
+  const prev = new Map();
+  while (clock < ms) {
+    clock += 16;
+    const me = e.g.ents[0]; if (me.state !== 'alive') { me.state = 'alive'; }
+    e.step(e.g);
+    e.g.ents.forEach((b) => {
+      if (!b.isBot) return;
+      if (b.state === 'trapped' && prev.get(b.id) === 'alive') {
+        const k = Math.floor(b.x / 100) + ',' + Math.floor(b.y / 100), o = owner.get(k);
+        if (o === b.id) res.self++; else if (o === 0) res.player++; else res.other++;
+      }
+      prev.set(b.id, b.state);
+      if (b.state === 'dead') { b.state = 'alive'; b.x = 750; b.y = 650; b.path = []; prev.set(b.id, 'alive'); }
+    });
+    if (e.finished) e.finished = null;
+  }
+  e.stop();
+  return res;
+}
+describe('selftrap', () => {
+  it('bots self-trap rate', () => {
+    const rows = [];
+    for (const skill of ['쉬움', '보통', '어려움']) for (let m = 0; m < 7; m++) {
+      let t = { self: 0, other: 0, player: 0 };
+      for (let i = 0; i < 4; i++) { const r = run(skill, m, 120000); t.self += r.self; t.other += r.other; t.player += r.player; }
+      rows.push({ skill, map: m, botMinutes: 4 * 2 * 3, ...t });
+    }
+    process.stdout.write(rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  }, 600000);
+});
