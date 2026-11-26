@@ -3,7 +3,7 @@ import PixelCanvas from './PixelCanvas.jsx';
 import { CHARS } from '../game/characters.js';
 import { charSprite, CHAR_SPRITE_SIZE as CS } from '../game/sprites.js';
 
-export default function HudBar({ hud, charIdx }) {
+export default function HudBar({ hud, charIdx, onPause, paused = false }) {
   const ch = CHARS[charIdx] || CHARS[0];
   const iconRef = useRef(null);
 
@@ -49,6 +49,21 @@ export default function HudBar({ hud, charIdx }) {
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, color: st.clockSec <= 30 ? '#ff6f91' : '#fff', minWidth: 92, textAlign: 'right' }}>
           {mm}:{String(ss).padStart(2, '0')}
         </div>
+        {onPause && (
+          // 일시정지 — 키보드(Esc · P)와 같은 경로. 다음 라운드 터치 조작도 이 버튼을 쓴다.
+          <button
+            type="button"
+            className="btn-ghost hud-pause"
+            aria-label="일시정지"
+            title="일시정지 (Esc · P)"
+            disabled={paused}
+            onClick={(e) => { e.currentTarget.blur(); onPause(); }}
+            style={{ width: 44, height: 44, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+          >
+            <span aria-hidden="true" style={{ width: 6, height: 18, background: '#fff', borderRadius: 1 }} />
+            <span aria-hidden="true" style={{ width: 6, height: 18, background: '#fff', borderRadius: 1 }} />
+          </button>
+        )}
       </div>
     </div>
   );
