@@ -85,8 +85,9 @@ engine.stop();
 
 ## 런타임 계약
 
-1. **rAF + 폴백 타이머**: 탭 비활성 시 브라우저가 rAF를 멈추므로, `setInterval(80ms)`에서
+1. **rAF + 폴백 타이머**: 브라우저가 rAF를 늦추거나 멈출 때를 위해 `setInterval(80ms)`에서
    `performance.now() - lastTick > 150` 이면 `tick()` 을 직접 호출하는 폴백을 유지합니다.
+   **탭 숨김 · 일시정지(2단계 1라운드)**: 탭이 숨으면(`visibilitychange`) 엔진이 판을 자동으로 일시정지합니다. 다시 보여도 저절로 이어지지 않고, 사람이 「계속할게요」나 Esc · P 를 눌러야 이어집니다. 일시정지와 시작 카운트다운 동안 흐른 시간만큼 도화선 · 물줄기 · 갇힘 · 거북이 · 봇 판단 · 판 시계 기준 시각을 모두 미루므로, 멈춘 시간은 판에 들어가지 않습니다. 창을 떠나면(`blur`) 눌린 키를 모두 풉니다. 탭이 숨으면 소리(AudioContext)도 쉽니다.
 2. **픽셀 렌더**: 정수배 확대만. `ctx.imageSmoothingEnabled = false` + CSS `image-rendering: pixelated`.
 3. **스프라이트 캐시**: 오프스크린 canvas → 모듈 스코프 Map 캐시. 캐시 키 규칙 유지
    (물줄기는 프레임 포함 `wa{stage}f{frame}`). 좌표계는 여전히 S=16 월드 단위(`u = T/S`) —
