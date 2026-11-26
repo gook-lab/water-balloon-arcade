@@ -449,7 +449,7 @@ export function decoSprite(theme, kind) {
   });
 }
 
-/* ---------------- items (v5: 봄버맨식 아이템 패널 + 픽토그램) ---------------- */
+/* ---------------- items (v5: 사각 아이템 패널 + 픽토그램) ---------------- */
 // frame 0/1 — 테두리 블링크로 시선 유도. 캐시 키 'it{type}f{frame}'.
 export function itemSprite(type, frame = 0) {
   return sprite('it' + type + 'f' + (frame || 0), () => {

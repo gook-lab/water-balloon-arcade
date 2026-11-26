@@ -82,7 +82,7 @@ export function moveEnt(game, e, vx, vy, dt) {
   let moved = false;
   if (dx && free(e.x + dx, e.y)) { e.x += dx; moved = true; }
   if (dy && free(e.x, e.y + dy)) { e.y += dy; moved = true; }
-  // 봄버맨식 레인 정렬: 한 축으로만 이동할 때 수직 축을 타일 중앙으로 끌어당긴다
+  // 칸 중앙 레인 정렬: 한 축으로만 이동할 때 수직 축을 타일 중앙으로 끌어당긴다
   // → 캐릭터가 항상 칸 정중앙 레인을 타고 움직인다 (칸 안 상하 유영 방지)
   if (moved) {
     if (vx && !vy) {

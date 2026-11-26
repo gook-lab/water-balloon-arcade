@@ -7,4 +7,4 @@ export function prefersReducedMotion() {
   }
 }
 
-export const popIn = (reduced, dur = '.3s') => (reduced ? undefined : `bnbPop ${dur} ease both`);
+export const popIn = (reduced, dur = '.3s') => (reduced ? undefined : `popIn ${dur} ease both`);

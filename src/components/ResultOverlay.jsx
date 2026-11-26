@@ -63,8 +63,8 @@ export default function ResultOverlay({ result, report, botSkill, onRestart, onC
         </div>
       )}
       {streak && <div style={{ fontSize: 14, color: '#ffd23f' }}>{streak}{nb.streak ? ' · 새 기록이에요!' : ''}</div>}
-      {f && <div style={{ fontSize: 12, color: '#a9b3d0' }}>끝날 때 풍선 {f.maxBalloons} · 물줄기 {f.power} · 속도 {f.speed} · 바늘 {f.pins}</div>}
-      {skillLabel && <div style={{ fontSize: 13, color: '#a9b3d0' }}>{skillLabel}</div>}
+      {f && <div className="result-final" style={{ fontSize: 12, color: '#a9b3d0' }}>끝날 때 풍선 {f.maxBalloons} · 물줄기 {f.power} · 속도 {f.speed} · 바늘 {f.pins}</div>}
+      {skillLabel && <div className="result-skill" style={{ fontSize: 13, color: '#a9b3d0' }}>{skillLabel}</div>}
       <div className="result-actions" style={{ display: 'flex', gap: 12, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
         <button ref={firstRef} type="button" className="btn-cta" style={{ fontSize: 21, padding: '12px 34px', boxShadow: '0 7px 0 #c47c00' }} onClick={onRestart}>다시 하기</button>
         <button type="button" className="btn-ghost" style={{ fontSize: 21, padding: '12px 24px' }} onClick={onChangeMap}>맵 바꾸기</button>

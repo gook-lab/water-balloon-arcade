@@ -1,7 +1,8 @@
 // 원본: 물풍선 대작전.dc.html drawStatic / draw / drawParts / drawMapPreview.
 // 정적 레이어(바닥+블록)는 game.layer 오프스크린 캔버스에 캐시하고 dirty 플래그로만 다시 그린다.
 import { NX, NY, S, FUSE, WATER_MS, TRAP_MS, key, clamp } from './constants.js';
-import { layoutHard } from './maps.js';
+import { buildMap } from './maps.js';
+import { blastTiles } from './rules.js';
 import { charSprite, blockSprite, decoSprite, itemSprite, balloonSprite, waterSprite, bubbleSprite } from './sprites.js';
 
 // 바닥 텍스처 (dragon-game PixelLab 타일 재사용) — 비동기 로드, 로드 완료 시 dirty 재렌더
@@ -17,6 +18,49 @@ function floorTexRec(theme) {
     floorTexCache.set(theme.id, rec);
   }
   return rec;
+}
+
+// 물줄기 범위 표시 — 화면 설정(App)이 켜고 끈다. 엔진 상태를 건드리지 않으려고 렌더러 모듈이 들고 있다.
+export const RANGE_WARN_MS = 600; // 터지기 이 시간 전부터 경고(깜빡임 · 축소 모션이면 진하게)
+const rangeView = { show: true };
+export function setRangeVisible(show) { rangeView.show = !!show; }
+
+let reducedMq;
+function prefersReducedMotion() {
+  if (reducedMq === undefined) {
+    reducedMq = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  }
+  return !!(reducedMq && reducedMq.matches);
+}
+
+/**
+ * 놓인 풍선들의 물줄기 범위 칸 목록(순수 함수). 칸마다 { x, y, hot } — hot 은 그 칸을 덮는 풍선 중
+ * 하나라도 터지기 RANGE_WARN_MS 이내인지. 칸 집합은 풍선별 blastTiles 의 합집합과 같다.
+ */
+export function rangeTiles(game, now) {
+  const hotByKey = new Map();
+  game.balloons.forEach((b) => {
+    const hot = FUSE - (now - b.at) <= RANGE_WARN_MS;
+    blastTiles(game, b).forEach((k) => hotByKey.set(k, hotByKey.get(k) || hot));
+  });
+  return [...hotByKey].map(([k, hot]) => {
+    const [x, y] = k.split(',').map(Number);
+    return { x, y, hot };
+  });
+}
+
+function drawRange(ctx, game, now) {
+  if (!rangeView.show || !game.balloons.length) return;
+  const T = game.T, inset = Math.max(1, Math.round(T * 0.04)), line = Math.max(2, Math.round(T * 0.035));
+  const blinkOn = prefersReducedMotion() || Math.floor(now / 100) % 2 === 0; // 축소 모션: 깜빡임 대신 진하게 고정
+  rangeTiles(game, now).forEach(({ x, y, hot }) => {
+    const px = x * T + inset, py = y * T + inset, w = T - inset * 2;
+    ctx.fillStyle = hot ? (blinkOn ? 'rgba(255,92,130,.5)' : 'rgba(255,92,130,.16)') : 'rgba(150,226,255,.3)';
+    ctx.fillRect(px, py, w, w);
+    ctx.strokeStyle = hot ? 'rgba(255,240,245,.85)' : 'rgba(255,255,255,.55)';
+    ctx.lineWidth = line;
+    ctx.strokeRect(px + line / 2, py + line / 2, w - line, w - line);
+  });
 }
 
 export function drawStatic(game) {
@@ -91,6 +135,7 @@ export function draw(game, cv) {
   }
   if (game.dirty || !game.layer) drawStatic(game);
   ctx.drawImage(game.layer, 0, 0);
+  drawRange(ctx, game, now);
 
   game.items.forEach((it, k) => {
     const [x, y] = k.split(',').map(Number);
@@ -193,18 +238,19 @@ export function draw(game, cv) {
 export function drawMapPreview(cv, theme) {
   const ctx = cv.getContext('2d'), u = 8;
   ctx.imageSmoothingEnabled = false;
-  const layout = theme.layout === 'random' ? 'classic' : theme.layout;
+  // 연결성 보정 뒤 실제로 남는 하드블록만 그린다(하드 배치는 상자 난수와 무관해 매번 같다)
+  const { grid } = buildMap(theme.layout === 'random' ? { ...theme, layout: 'classic' } : theme);
   for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
     ctx.fillStyle = (x + y) % 2 ? theme.g1 : theme.g2;
     ctx.fillRect(x * u, y * u, u, u);
-    if (layoutHard(layout, x, y)) {
+    if (grid[y][x] === 'hard') {
       ctx.fillStyle = theme.hard[1]; ctx.fillRect(x * u, y * u, u, u);
       ctx.fillStyle = theme.hard[0]; ctx.fillRect(x * u, y * u, u, u * 0.35);
     }
   }
   if (theme.layout === 'random') {
     ctx.fillStyle = 'rgba(14,18,38,.62)'; ctx.fillRect(0, 0, NX * u, NY * u);
-    ctx.fillStyle = '#ffd23f'; ctx.font = "600 26px 'Jua', sans-serif";
+    ctx.fillStyle = '#ffd23f'; ctx.font = "26px 'Neo둥근모', sans-serif";
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('?', (NX * u) / 2, (NY * u) / 2);
   }
