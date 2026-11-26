@@ -16,7 +16,7 @@ function MapPreview({ theme }) {
 export default function MapSelect({ value, onChange, onBack, onStart }) {
   return (
     <div className="screen-center">
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26, animation: 'bnbPop .3s ease both' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26, animation: 'popIn .3s ease both' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 42, textShadow: '0 4px 0 #3a4a8f' }}>맵 선택</div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 1180 }}>
           {MAPS.map((mp, i) => {

@@ -2,11 +2,16 @@
 
 [한국어](README.md) | **English**
 
-A Crazy Arcade-style 2D water balloon game, ported from a working HTML prototype
-(`../크레이지아케이드 (1)/물풍선 대작전.dc.html`) to **React 18 + Vite**.
+A 2D pixel arcade game: drop water balloons on a grid and trap your rivals in the splash.
+Pick one of six characters and seven maps (plus random), then take on three bots in a three-minute round.
+Be the last one dry to win.
 
-Game rules, tuning values and pixel sprite data are copied from the prototype as-is
-and are not changed arbitrarily. (Full brief: [PROMPT.md](PROMPT.md))
+▶ Play now: https://water-balloon-arcade-ebon.vercel.app/ (desktop with a keyboard; the in-game text is Korean)
+
+Ported from a hand-built HTML prototype to **React 18 + Vite**. The game engine is plain JS kept apart from React,
+graphics are Canvas 2D pixel sprites, and the chiptune music is synthesized in code with Web Audio.
+Game rules, tuning values and sprite data are carried over from the prototype as-is and are not changed arbitrarily.
+(Full brief: [PROMPT.md](PROMPT.md))
 
 ## Running
 

@@ -48,7 +48,7 @@ TitleScreen에서 타일 크기(64/128/256)와 난이도(쉬움/보통/어려움
 | `src/App.jsx` | 화면 라우팅 (`title \| select \| map \| game`) + 기본 설정 (타일 128, 180초, 봇 3, 보통) |
 | `src/screens/TitleScreen.jsx` | 타이틀 + 설정 UI (타일 크기, 난이도) |
 | `src/screens/CharacterSelect.jsx` | 캐릭터 6종 선택 |
-| `src/screens/MapSelect.jsx` | 맵 5종+랜덤 선택 (미리보기는 renderer의 `drawMapPreview`) |
+| `src/screens/MapSelect.jsx` | 맵 7종+랜덤 선택 (미리보기는 renderer의 `drawMapPreview`) |
 | `src/screens/GameScreen.jsx` | 캔버스 + HUD + 결과 오버레이 조립 |
 | `src/components/PixelCanvas.jsx` | ref로 canvas 노출, `image-rendering: pixelated` |
 | `src/components/HudBar.jsx` | 스탯/남은 상대/시계 표시 |
@@ -116,7 +116,7 @@ engine.stop();
 
 | 대상 | 내용 |
 |---|---|
-| 캐릭터 도트맵 | `characters.js` 전면 재작성 — 봄버맨풍 실루엣(안테나 보블+둥근 헬멧+흰 페이스플레이트+세로 눈+발). 6종 개성은 `over` 행으로: 뭉치 고양이 귀 / 삐용 볏+부리 / 토리 곰 귀 / 펭구 흰 배+부리 / 로보 바이저+볼트. **스탯(base)은 불변** — characters.test.js가 원본 고정을 가드. EPX 32px 파이프라인 유지 |
+| 캐릭터 도트맵 | `characters.js` 전면 재작성 — 둥근 헬멧 실루엣(안테나 보블+둥근 헬멧+흰 페이스플레이트+세로 눈+발). 6종 개성은 `over` 행으로: 뭉치 고양이 귀 / 삐용 볏+부리 / 토리 곰 귀 / 펭구 흰 배+부리 / 로보 바이저+볼트. **스탯(base)은 불변** — characters.test.js가 원본 고정을 가드. EPX 32px 파이프라인 유지 |
 | 블록 가독성 | 피드백 "파괴 가능/불가 구분 안 됨" 해결. 하드블록 = `mixGray(0.55)` + 강한 다크 시프트 → 전 테마 공통 어두운 강철/스톤 + 볼트 4개 마커. 상자(soft·tough) = `mixWarm(#c98a4a, 0.24)` 우드 틴트. 명도+색온도 이중 신호라 눈 언덕처럼 양쪽이 한색이던 테마에서도 즉시 구분 |
 | UI 픽셀화 | 폰트 Neo둥근모(`@kfonts/neodgm` **로컬 번들**, main.jsx에서 CSS import — DungGeunMo CDN 404로 npm 패키지 전환). 버튼/카드/패널 radius 4 + 3px 아웃라인 + 블러 없는 하드 섀도, 타이틀 로고 노랑+아웃라인 텍스트섀도, 배경 스캔라인+체커, HUD 칩 사각형화. Jua/Gothic A1은 폴백 유지 |
 
@@ -126,7 +126,7 @@ engine.stop();
 
 | 대상 | 내용 |
 |---|---|
-| 아이템 패널 | 디스크+글리프 방식 폐기(`GLYPHS`·`discSprite` 제거) → **봄버맨식 32px 사각 패널**: 굵은 아웃라인 + 아이템색 고명도 틴트 배경 + 하단 셰이드 밴드 + 흰 내부 테두리, 그 위에 12×12 픽토그램 2배 스케일+드롭섀도. `ITEM_ICONS` export(도트맵+pal) |
+| 아이템 패널 | 디스크+글리프 방식 폐기(`GLYPHS`·`discSprite` 제거) → **32px 사각 아이템 패널**: 굵은 아웃라인 + 아이템색 고명도 틴트 배경 + 하단 셰이드 밴드 + 흰 내부 테두리, 그 위에 12×12 픽토그램 2배 스케일+드롭섀도. `ITEM_ICONS` export(도트맵+pal) |
 | 픽토그램 7종 | 물풍선=풍선+매듭 / 물줄기=물약병(시안 액체) / 롤러=부츠+바퀴 / 바늘=대각 바늘+실귀 / 풍선통과=유령 풍선 / 블록통과=상자+더블 셰브런 / 거북이=탑뷰 거북. 나쁜 아이템(거북이)은 패널 틴트 0.42(일반 0.62)로 구분 |
 | 블링크 | 2프레임(260ms) 흰 테두리 명멸+반짝이 점. 캐시 키 `it{type}f{frame}`, renderer가 frame 전달(waterSprite 패턴과 동일) |
 | 드랍 팝 | `engine.burst` 아이템 드랍 시 흰 rise 파티클 4개로 시선 유도 |
@@ -172,6 +172,6 @@ engine만 renderer를 mock합니다 — 엔진/React 경계 원칙이 테스트�
 
 ## 빌드
 
-Vite 5 + `@vitejs/plugin-react`. 런타임 의존성은 react/react-dom + `@kfonts/neodgm`(픽셀 폰트,
+Vite 8 + `@vitejs/plugin-react`. 런타임 의존성은 react/react-dom + `@kfonts/neodgm`(픽셀 폰트,
 로컬 번들 — CDN 미사용). 개발 의존성에 Vitest. 현재 빌드 크기 약 192KB (gzip 63.4KB).
 git 저장소 초기화됨 (2026-08-24, `6a1f4ba` 베이스라인).

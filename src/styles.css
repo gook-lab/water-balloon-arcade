@@ -1,4 +1,4 @@
-/* 봄버맨풍 픽셀 UI (v3) — 픽셀 폰트(Neo둥근모, @kfonts/neodgm 로컬 번들) + 각진 패널 + 하드 섀도 */
+/* 픽셀 UI (v3) — 픽셀 폰트(Neo둥근모, @kfonts/neodgm 로컬 번들) + 각진 패널 + 하드 섀도 */
 :root {
   --bg: #141a33;
   --bg-deep: #0e1226;
@@ -110,5 +110,5 @@ canvas { image-rendering: pixelated; }
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.07);
 }
 
-@keyframes bnbFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@keyframes bnbPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes floatBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }

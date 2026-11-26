@@ -13,7 +13,7 @@ function CharCanvas({ ch }) {
     ctx.clearRect(0, 0, CS, CS);
     ctx.drawImage(charSprite(ch, 'down'), 0, 0);
   }, [ch]);
-  return <PixelCanvas ref={ref} width={CS} height={CS} style={{ width: 80, height: 80, animation: 'bnbFloat 2.6s ease-in-out infinite' }} />;
+  return <PixelCanvas ref={ref} width={CS} height={CS} style={{ width: 80, height: 80, animation: 'floatBob 2.6s ease-in-out infinite' }} />;
 }
 
 const STAT_COLORS = { 풍: '#ff8fb1', 줄: '#7fd8ff', 속: '#ffd23f' };
@@ -21,7 +21,7 @@ const STAT_COLORS = { 풍: '#ff8fb1', 줄: '#7fd8ff', 속: '#ffd23f' };
 export default function CharacterSelect({ value, onChange, onBack, onNext }) {
   return (
     <div className="screen-center">
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26, animation: 'bnbPop .3s ease both' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26, animation: 'popIn .3s ease both' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 42, textShadow: '0 4px 0 #3a4a8f' }}>캐릭터 선택</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 740 }}>
           {CHARS.map((ch, i) => {

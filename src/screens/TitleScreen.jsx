@@ -82,14 +82,14 @@ export default function TitleScreen({ settings, onSettingsChange, onStart }) {
 
   return (
     <div className="screen-center">
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32, animation: 'bnbPop .35s ease both' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32, animation: 'popIn .35s ease both' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: 7, color: '#7fd8ff' }}>WATER BALLOON ARCADE</div>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 76, lineHeight: 1.15, whiteSpace: 'nowrap', color: 'var(--accent)', textShadow: '4px 0 0 var(--outline), -4px 0 0 var(--outline), 0 -4px 0 var(--outline), 0 6px 0 #3a4a8f, 0 12px 0 rgba(0,0,0,.35)' }}>물풍선 대작전</div>
           <div style={{ fontSize: 16, color: '#b9c4ee', marginTop: 8 }}>6명의 캐릭터, 5개의 맵. 15 × 13 타일. 마지막까지 살아남으세요.</div>
         </div>
 
-        <PixelCanvas ref={heroRef} width={480} height={96} style={{ width: 480, height: 96, animation: 'bnbFloat 3s ease-in-out infinite' }} />
+        <PixelCanvas ref={heroRef} width={480} height={96} style={{ width: 480, height: 96, animation: 'floatBob 3s ease-in-out infinite' }} />
 
         <div style={{ display: 'flex', gap: 12 }}>
           <div className="info-card">
