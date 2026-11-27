@@ -10,7 +10,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const require = createRequire(import.meta.url);
-const { chromium } = require('/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright');
+const { chromium } = require(`${process.env.HOME}/sonix/toy/dokkaebi-quest/node_modules/playwright`);
 const OUT = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.WBA_URL || 'http://127.0.0.1:5313';
 const SEED = Number(process.env.SEED || 7);
