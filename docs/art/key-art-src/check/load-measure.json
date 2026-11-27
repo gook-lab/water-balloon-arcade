@@ -1,0 +1,37 @@
+{
+  "condition": "Playwright Chromium, CDP 150ms latency · 200KB/s down, 1440x900, 3 runs median (ms from navigation)",
+  "before": {
+    "median": {
+      "fcp": 1108,
+      "startButton": 735,
+      "kb": 116
+    },
+    "note": "main b1df6a7 build"
+  },
+  "after": {
+    "fcp": 404,
+    "startButton": 908,
+    "titleShown": 1424,
+    "kb": 278,
+    "runs": [
+      {
+        "fcp": 392,
+        "startButton": 901,
+        "titleShown": 1465,
+        "kb": 278
+      },
+      {
+        "fcp": 404,
+        "startButton": 908,
+        "titleShown": 1419,
+        "kb": 278
+      },
+      {
+        "fcp": 408,
+        "startButton": 912,
+        "titleShown": 1424,
+        "kb": 278
+      }
+    ]
+  }
+}
