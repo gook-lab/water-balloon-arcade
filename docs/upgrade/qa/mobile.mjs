@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { devices, args, shot, collectErrors, ENGINE_PROBE, findButton, waitPlaying, NAMES, writeJson, sleep } from './lib.mjs';
 
 const require = createRequire(import.meta.url);
-const pw = require(process.env.PLAYWRIGHT_PATH || '/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright');
+const pw = require(process.env.PLAYWRIGHT_PATH || `${process.env.HOME}/sonix/toy/dokkaebi-quest/node_modules/playwright`);
 const A = args({ url: 'http://127.0.0.1:5310', label: 'local', engine: 'chromium', out: path.join(path.dirname(new URL(import.meta.url).pathname), 'out') });
 const OUT = path.join(A.out, 'mobile', A.label + '-' + A.engine);
 const BASE = A.url.replace(/\/$/, '');

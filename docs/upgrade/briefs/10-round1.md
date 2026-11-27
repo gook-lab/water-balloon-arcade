@@ -16,7 +16,7 @@
   - 마케팅(그림 · 문구 최종본): 레포 본체 `~/sonix/toy/water-balloon-arcade` 의 `docs/upgrade/marketing/final/` 에만 씁니다. 커밋하지 않습니다(리드가 합침).
 - 작업 트리에서는 먼저 `npm ci` 를 합니다(`node_modules` 는 트리마다 따로).
 - 서버는 자기 포트만 띄우고 끕니다: `lsof -ti :<포트> | xargs kill`. `pkill -f vite` 같은 넓은 명령은 쓰지 않습니다(다른 팀원 · 리드 서버가 같이 죽습니다). 5310 은 리드 것입니다.
-- 브라우저 상태 파일: `BROWSE_STATE_FILE=/tmp/wba-r1-<역할>.json`. 캔버스 · 키 입력 확인은 Playwright(`/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright`)를 써도 됩니다.
+- 브라우저 상태 파일: `BROWSE_STATE_FILE=/tmp/wba-r1-<역할>.json`. 캔버스 · 키 입력 확인은 Playwright(`~/sonix/toy/dokkaebi-quest/node_modules/playwright`)를 써도 됩니다.
 
 ## 지켜야 할 것
 

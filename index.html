@@ -37,8 +37,110 @@
         document.head.appendChild(s);
       }
     </script>
+    <!-- 로딩 화면: JS 없이 바로 보이는 인라인 화면. 타이틀이 그릴 준비가 되면 TitleScreen 이 __wbaBoot.done() 으로 걷는다 -->
+    <style>
+      html, body { margin: 0; background: #0e1226; }
+      #boot {
+        position: fixed; inset: 0; z-index: 100;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        padding: 16px; text-align: center; color: #fff;
+        font-family: 'Neo둥근모', 'DungGeunMo', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        background: radial-gradient(120% 90% at 50% 0%, #2b3566 0%, #141a33 60%, #0e1226 100%);
+        transition: opacity .2s ease;
+      }
+      #boot.boot-out { opacity: 0; pointer-events: none; }
+      #boot p { margin: 0; }
+      .boot-balloon {
+        position: relative; width: 56px; height: 60px; border-radius: 50% 50% 46% 46%;
+        background: radial-gradient(circle at 34% 30%, #e6f7ff 0 12%, #6fc8ff 13% 42%, #2f8fd8 70%, #1f5fa8 100%);
+        border: 3px solid #1d2338; box-shadow: 0 6px 0 rgba(0, 0, 0, .35);
+        animation: boot-bob 1.1s ease-in-out infinite;
+      }
+      .boot-balloon::after {
+        content: ''; position: absolute; left: 50%; bottom: -9px; width: 10px; height: 8px; margin-left: -5px;
+        background: #2f8fd8; border: 3px solid #1d2338; border-top: 0;
+      }
+      .boot-name {
+        font-size: clamp(30px, 9vw, 48px); font-weight: 800; letter-spacing: 2px; color: #ffd23f; white-space: nowrap;
+        text-shadow: 3px 0 0 #1d2338, -3px 0 0 #1d2338, 0 -3px 0 #1d2338, 0 3px 0 #2f8fd8, 0 6px 0 #1d2338;
+      }
+      .boot-bar {
+        position: relative; width: min(240px, 70vw); height: 14px; overflow: hidden;
+        background: #1b2347; border: 3px solid #1d2338; border-radius: 3px;
+      }
+      .boot-bar span {
+        position: absolute; top: 0; bottom: 0; left: 0; width: 34%;
+        background: repeating-linear-gradient(90deg, #7fd8ff 0 10px, #2f8fd8 10px 14px);
+        animation: boot-slide 1.2s linear infinite;
+      }
+      .boot-msg { font-size: 14px; color: #cdd6f7; min-height: 1.3em; }
+      .boot-help { display: none; flex-direction: column; align-items: center; gap: 10px; max-width: 320px; }
+      .boot-help-text { font-size: 15px; line-height: 1.5; text-wrap: balance; }
+      #boot.boot-fail .boot-msg { display: none; }
+      #boot.boot-slow .boot-help, #boot.boot-fail .boot-help { display: flex; }
+      #boot.boot-fail .boot-bar span { animation: none; width: 100%; background: #ff6f91; }
+      .boot-reload {
+        cursor: pointer; font: inherit; font-size: 17px; padding: 9px 22px; color: #4a2f00;
+        background: #ffd23f; border: 3px solid #1d2338; border-radius: 4px; box-shadow: 0 5px 0 #c47c00;
+      }
+      .boot-reload:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+      @keyframes boot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+      @keyframes boot-slide { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
+      @media (prefers-reduced-motion: reduce) {
+        #boot, .boot-balloon, .boot-bar span { animation: none; transition: none; }
+        .boot-bar span { width: 100%; opacity: .6; }
+      }
+    </style>
+    <script>
+      // 로딩 화면 제어 — 15초 넘으면 느린 망 안내, 진입 스크립트(type=module)가 못 오면 실패 안내. 둘 다 다시 불러오기 버튼.
+      // 진입 스크립트보다 먼저 오류를 듣도록 <head> 에 둔다. #boot 가 아직 없으면 DOMContentLoaded 에 반영한다
+      (function () {
+        var state = null;
+        var finished = false;
+        function apply() {
+          var boot = document.getElementById('boot');
+          if (!boot || !state || finished) return;
+          boot.classList.add(state.kind);
+          boot.querySelector('.boot-help-text').textContent = state.msg;
+        }
+        function show(kind, msg) {
+          if (finished) return;
+          state = { kind: kind, msg: msg };
+          apply();
+        }
+        document.addEventListener('DOMContentLoaded', apply);
+        var slow = setTimeout(function () { show('boot-slow', '느린 망이에요. 다시 불러오면 빨라질 수 있어요'); }, 15000);
+        window.addEventListener('error', function (e) {
+          var t = e.target;
+          if (t && t.tagName === 'SCRIPT' && t.type === 'module') show('boot-fail', '게임 파일을 받지 못했어요. 다시 불러와 주세요');
+        }, true);
+        window.__wbaBoot = {
+          done: function () {
+            if (finished) return;
+            finished = true;
+            clearTimeout(slow);
+            var boot = document.getElementById('boot');
+            if (!boot) return;
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            boot.classList.add('boot-out');
+            setTimeout(function () { boot.remove(); }, reduce ? 0 : 220);
+          }
+        };
+      })();
+    </script>
   </head>
   <body>
+    <div id="boot" role="status" aria-live="polite">
+      <div class="boot-balloon" aria-hidden="true"></div>
+      <p class="boot-name">물풍선 대작전</p>
+      <div class="boot-bar" aria-hidden="true"><span></span></div>
+      <p class="boot-msg">물풍선 채우는 중이에요</p>
+      <div class="boot-help">
+        <p class="boot-help-text">느린 망이에요. 다시 불러오면 빨라질 수 있어요</p>
+        <button type="button" class="boot-reload" onclick="location.reload()">다시 불러오기</button>
+      </div>
+      <noscript><p class="boot-nojs">자바스크립트를 켜면 바로 한 판 할 수 있어요</p><style>.boot-bar, .boot-msg { display: none; } .boot-nojs { font-size: 14px; color: #cdd6f7; }</style></noscript>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

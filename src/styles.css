@@ -165,16 +165,76 @@ button:focus-visible,
   color: var(--accent);
 }
 
-/* 타이틀 화면 */
+/* 타이틀 화면 — 대표 그림(public/key-art.webp)을 포스터 · 배경으로 쓴다.
+   넓은 화면은 왼쪽 포스터 + 오른쪽 설정 판 두 단, 좁은 화면은 한 단. 버튼 순서(DOM)는 한 단과 같다 */
+.title-screen { position: relative; isolation: isolate; }
+.title-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* 작은 그림(192px)을 늘려 흐린 배경으로 — 필터 없이 번짐을 얻는다 */
+  background:
+    linear-gradient(180deg, rgba(14, 18, 38, 0.7) 0%, rgba(14, 18, 38, 0.86) 45%, rgba(14, 18, 38, 0.95) 100%),
+    url('/key-art-blur.webp') center / cover no-repeat,
+    var(--bg-deep);
+}
 .title-stack {
   width: 100%;
   max-width: 980px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 22px;
 }
-.title-head { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.title-left,
+.title-right { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 0; }
+.title-poster { width: min(720px, 100%); display: flex; flex-direction: column; align-items: center; }
+.title-art-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 3px solid var(--outline);
+  border-radius: 6px;
+  background: #2d8a3e linear-gradient(180deg, #3aa24c, #23733a);
+  box-shadow: 0 0 0 3px var(--frame-1), 0 10px 0 3px rgba(0, 0, 0, 0.35), 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+/* 그림 아래쪽을 어둡게 — 위에 겹치는 로고 판과 이어지게 */
+.title-art-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(14, 18, 38, 0.55) 100%);
+  pointer-events: none;
+}
+.title-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 0.35s ease, transform 0.9s ease-out;
+}
+.title-art-frame.is-ready .title-art { opacity: 1; transform: scale(1); }
+.title-head {
+  position: relative;
+  z-index: 1;
+  margin-top: -30px;
+  width: min(600px, calc(100% - 24px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px 14px;
+  text-align: center;
+  background: rgba(20, 26, 51, 0.92);
+  border: 3px solid var(--outline);
+  border-radius: 6px;
+  box-shadow: inset 0 3px 0 rgba(127, 216, 255, 0.28), 0 6px 0 rgba(0, 0, 0, 0.4);
+}
 .title-kicker {
   font-family: var(--font-display);
   font-size: clamp(12px, 3.6vw, 18px);
@@ -185,16 +245,29 @@ button:focus-visible,
   margin: 0;
   font-family: var(--font-display);
   font-weight: normal;
-  font-size: clamp(44px, 13vw, 76px);
+  font-size: clamp(36px, 10.5vw, 76px);
   line-height: 1.15;
   white-space: nowrap;
   color: var(--accent);
-  text-shadow: 4px 0 0 var(--outline), -4px 0 0 var(--outline), 0 -4px 0 var(--outline), 0 6px 0 #3a4a8f, 0 12px 0 rgba(0, 0, 0, 0.35);
+  /* 굵은 남색 테 + 물빛 두께 + 그림자 — 픽셀 로고 */
+  text-shadow:
+    4px 0 0 var(--outline), -4px 0 0 var(--outline), 0 -4px 0 var(--outline), 4px -4px 0 var(--outline), -4px -4px 0 var(--outline),
+    0 4px 0 #2f8fd8, 4px 4px 0 var(--outline), -4px 4px 0 var(--outline),
+    0 8px 0 #1f5fa8, 0 12px 0 var(--outline), 0 16px 0 rgba(0, 0, 0, 0.35);
+  margin-bottom: 10px;
 }
-.title-hook { margin: 8px 0 0; font-size: clamp(15px, 4.2vw, 18px); color: #dfe6ff; }
-.title-facts { margin: 0; font-size: 13px; color: var(--ink-faint); }
+.title-hook { margin: 2px 0 0; font-size: clamp(15px, 4.2vw, 18px); color: #eef2ff; text-wrap: balance; }
+.title-facts { margin: 0; font-size: 13px; color: var(--ink-dim); }
 .title-record { margin: 4px 0 0; font-size: 13px; color: var(--mint); }
-.title-hero { width: min(480px, 100%); height: auto; aspect-ratio: 5 / 1; }
+.title-hero { width: min(420px, 100%); height: auto; aspect-ratio: 5 / 1; animation: floatBob 3s ease-in-out infinite; }
+/* 설정 판 — 배경 그림 위에서도 글자가 읽히게 어두운 판을 깐다 */
+.title-right {
+  padding: 16px;
+  background: rgba(14, 18, 38, 0.72);
+  border: 3px solid var(--outline);
+  border-radius: 6px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.06);
+}
 .title-cards {
   display: flex;
   flex-wrap: wrap;
@@ -226,8 +299,37 @@ button:focus-visible,
   padding: 15px 52px;
   box-shadow: 0 8px 0 #c47c00, 0 18px 30px rgba(0, 0, 0, 0.45);
 }
+/* 넓은 화면 — 포스터와 설정 판을 나란히. 1440×900 에서 시작 버튼까지 한 화면에 들어온다 */
+@media (min-width: 1100px) and (min-height: 700px) {
+  .title-stack {
+    max-width: 1320px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 32px;
+  }
+  .title-poster { width: 100%; }
+  .title-art-frame { aspect-ratio: 3 / 2; }
+  .title-logo { font-size: clamp(52px, 5.2vw, 76px); }
+  .title-head { margin-top: -54px; }
+  .title-cards .info-card { flex: 1 1 calc(50% - 6px); min-width: 0; }
+  .title-cards .info-card-items { flex-basis: 100%; }
+  .title-right { align-items: stretch; }
+  .title-options { align-self: center; }
+  .title-start { align-self: center; }
+}
+/* 낮은 가로 화면 — 그림을 납작하게 잘라 설정이 덜 밀리게 */
+@media (max-height: 520px) {
+  .title-poster { width: min(600px, 100%); }
+  .title-art-frame { aspect-ratio: 21 / 9; }
+  .title-art { object-position: 50% 46%; }
+  .title-head { margin-top: -10px; }
+  .title-logo { font-size: clamp(36px, 6vw, 52px); margin-bottom: 6px; }
+}
 @media (max-width: 520px) {
   .title-stack { gap: 18px; }
+  .title-right { padding: 12px; }
+  .title-head { margin-top: -22px; padding: 6px 10px 12px; }
   .item-legend { grid-template-columns: minmax(0, 1fr); }
   .title-cards .info-card { flex: 1 1 100%; min-width: 0; }
 }

@@ -6,10 +6,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
-const PW = process.env.PLAYWRIGHT_PATH || '/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright';
+const PW = process.env.PLAYWRIGHT_PATH || `${process.env.HOME}/sonix/toy/dokkaebi-quest/node_modules/playwright`;
 export const { chromium, devices } = require(PW);
 
-export const AXE_PATH = process.env.AXE_PATH || '/Users/kyb-ontact/sonix/fe/sonix_homepage/node_modules/axe-core/axe.min.js';
+export const AXE_PATH = process.env.AXE_PATH || `${process.env.HOME}/sonix/fe/sonix_homepage/node_modules/axe-core/axe.min.js`;
 
 export function args(defaults = {}) {
   const out = { ...defaults };

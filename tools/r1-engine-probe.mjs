@@ -8,7 +8,7 @@ import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 
 const require = createRequire(import.meta.url)
-const { chromium } = require(process.env.PLAYWRIGHT || '/Users/kyb-ontact/sonix/toy/dokkaebi-quest/node_modules/playwright')
+const { chromium } = require(process.env.PLAYWRIGHT || `${process.env.HOME}/sonix/toy/dokkaebi-quest/node_modules/playwright`)
 const BASE = process.argv[2] || 'http://localhost:5321'
 const OUT = resolve(process.argv[3] || 'docs/upgrade/r1/engine')
 mkdirSync(OUT, { recursive: true })
